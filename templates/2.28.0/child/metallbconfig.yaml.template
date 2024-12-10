@@ -1,0 +1,44 @@
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: MetalLBConfig
+metadata:
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+  name: {{ MCC_CHILD_CLUSTER_NAME }}-metallb
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+spec:
+  ipAddressPools:
+  - name: default
+    spec:
+      addresses:
+      - {{ NETWORK_LCM_METALLB_RANGE_CHILD }}
+      autoAssign: true
+      avoidBuggyIPs: false
+  - name: openstack-lb
+    spec:
+      addresses:
+      - {{ NETWORK_LCM_METALLB_OPENSTACK_ADDRESS }}/32
+      autoAssign: true
+      serviceAllocation:
+        namespaces:
+        - openstack
+        priority: 42
+        serviceSelectors:
+        - matchExpressions:
+          - key: application
+            operator: In
+            values:
+            - ingress
+          - key: component
+            operator: In
+            values:
+            - server
+  l2Advertisements:
+  - name: default
+    spec:
+      interfaces:
+      - mcc-lcm
+      ipAddressPools:
+      - default
+      - openstack-lb

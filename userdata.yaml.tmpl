@@ -1,0 +1,26 @@
+#cloud-config
+fqdn: mcc-seed
+users:
+- gecos: {{ SEED_NODE_USER }}
+  groups: sudo, adm, docker
+  name: {{ SEED_NODE_USER }}
+  lock_passwd: false
+  shell: /bin/bash
+  ssh_authorized_keys:
+  - |
+    {{ MCC_SSH_PUBLIC_KEY }}
+  sudo: ALL=(ALL) NOPASSWD:ALL
+chpasswd:
+  expire: false
+  users:
+  - name: {{ SEED_NODE_USER }}
+    password: {{ SEED_NODE_PWD }}
+    type: text
+{% if NTP_SERVERS is defined and NTP_SERVERS != '' %}
+ntp:
+  enabled: true
+  servers:
+  {%- for server in NTP_SERVERS.split(',') %}
+    - {{ server -}}
+  {% endfor %}
+{% endif %}

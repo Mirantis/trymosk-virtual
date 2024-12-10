@@ -1,0 +1,24 @@
+version: 2
+ethernets:
+  id0:
+    dhcp4: false
+    dhcp6: false
+    match:
+      macaddress: {{ seed_mac_address }}
+bridges:
+  {{ SEED_NODE_PXE_BRIDGE }}:
+    dhcp4: false
+    dhcp6: false
+    interfaces:
+    - id0
+    parameters:
+      forward-delay: 4
+      stp: false
+    addresses:
+    - {{ NETWORK_LCM_SEED_IP }}/{{ network_lcm_mask }}
+    gateway4: {{ NETWORK_LCM_GATEWAY }}
+    nameservers:
+      addresses:
+      {%- for server in NAMESERVERS.split(',') %}
+      - {{ server -}}
+      {% endfor %}

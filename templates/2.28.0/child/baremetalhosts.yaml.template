@@ -1,0 +1,180 @@
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-control-0-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-control-1-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-control-2-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-worker-0-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-worker-1-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: child-worker-2-bmc-credentials
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-control-0
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-control-0
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-control-0-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_control_mac_address_0 }}"
+  bmc:
+    address: 127.0.0.1:6240
+    credentialsName: ''
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-control-1
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-control-1
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-control-1-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_control_mac_address_1 }}"
+  bmc:
+    address: 127.0.0.1:6241
+    credentialsName: ''
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-control-2
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-control-2
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-control-2-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_control_mac_address_2 }}"
+  bmc:
+    address: 127.0.0.1:6242
+    credentialsName: ''
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-worker-0
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-worker-0
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-worker-0-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_worker_mac_address_0 }}"
+  bmc:
+    address: 127.0.0.1:6250
+    credentialsName: ''
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-worker-1
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-worker-1
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-worker-1-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_worker_mac_address_1 }}"
+  bmc:
+    address: 127.0.0.1:6251
+    credentialsName: ''
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: child-worker-2
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-child-worker-2
+  annotations:
+    "kaas.mirantis.com/baremetalhost-credentials-name": "child-worker-2-bmc-credentials"
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ child_worker_mac_address_2 }}"
+  bmc:
+    address: 127.0.0.1:6252
+    credentialsName: ''

@@ -1,0 +1,8 @@
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: PublicKey
+metadata:
+  name: user-key
+  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+spec:
+  publicKey: |
+    {{ MCC_SSH_PUBLIC_KEY }}
