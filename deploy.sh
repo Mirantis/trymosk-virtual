@@ -270,6 +270,9 @@ function usage() {
     echo "  cleanup                                   cleanup VMs from the provided folder on Vsphere"
     echo "  cleanup_bootstrap_cluster                 cleanup bootstrap cluster from seed node. Useful when management cluster deployment"
     echo "                                            is required to be restarted from scratch"
+    echo "  collect_mgmt_cluster_logs                 collects mgmt cluster logs via 'container-cloud collect logs' command on seed node, packs to logs.tar.gz and copies into ${work_dir}"
+    echo "  collect_child_cluster_logs                collects child cluster logs via 'container-cloud collect logs' command on seed node, packs to logs.tar.gz and copies into ${work_dir}"
+    echo "  collect_logs                              combines collect_mgmt_cluster_logs and collect_child_cluster_logs"
     echo "  help                                      shows this help message"
     echo ""
     echo "Required binaries:"
@@ -1397,6 +1400,39 @@ function cleanup {
     echo "Cleanup has been finished successfully"
 }
 
+function collect_logs() {
+    if ! [ $# -eq 1 ]; then
+        echo "Error: ${FUNCNAME[0]} requires exactly 1 argument"
+        exit 1
+    fi
+    local seed_node_ssh_key_path mgmt_kubeconfig_path
+    seed_node_ssh_key_path="/home/${SEED_NODE_USER}/.ssh/$(basename "${SSH_PRIVATE_KEY_PATH}")"
+    mgmt_kubeconfig_path="/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_MGMT_CLUSTER_NAME}"
+    # Copy SSH_PRIVATE_KEY_PATH to seed node
+    ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${seed_node_ssh_key_path}"
+
+    if [ "$1" == 'mgmt' ]; then
+        _set_mgmt_vars
+        local log_dir="/home/${SEED_NODE_USER}/mgmt_logs"
+        ${ssh_cmd} bash -c "'[ -d ${log_dir} ]' && rm -rf ${log_dir} || true"
+        ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_MGMT_CLUSTER_NAME}" --cluster-namespace default \
+            --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
+        ${ssh_cmd} tar czf "${log_dir}.tgz" "${log_dir}"
+        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
+    elif [ "$1" == 'child' ]; then
+        _set_child_vars
+        local log_dir="/home/${SEED_NODE_USER}/child_logs"
+        ${ssh_cmd} bash -c "'[ -d ${log_dir} ]' && rm -rf ${log_dir} || true"
+        ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_CHILD_CLUSTER_NAME}" --cluster-namespace "${MCC_CHILD_CLUSTER_NAMESPACE}" \
+            --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
+        ${ssh_cmd} tar czf "${log_dir}.tgz" "${log_dir}"
+        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
+    else
+        echo "${FUNCNAME[0]} takes only 'mgmt' or 'child' values for its parameter"
+        exit 1
+    fi
+}
+
 function cleanup_bootstrap_cluster {
     _set_bootstrap_vars
     ${remote_kind_cmd} delete cluster --name clusterapi
@@ -1517,6 +1553,25 @@ function main {
         apply_coredns_hack)
             set_vars
             apply_coredns_hack
+            exit 0
+            ;;
+        collect_mgmt_cluster_logs)
+            verify_binaries
+            set_vars
+            collect_logs mgmt
+            exit 0
+            ;;
+        collect_child_cluster_logs)
+            verify_binaries
+            set_vars
+            collect_logs child
+            exit 0
+            ;;
+        collect_logs)
+            verify_binaries
+            set_vars
+            collect_logs mgmt
+            collect_logs child
             exit 0
             ;;
         all)
