@@ -1417,7 +1417,7 @@ function collect_logs() {
         ${ssh_cmd} bash -c "'[ -d ${log_dir} ]' && rm -rf ${log_dir} || true"
         ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_MGMT_CLUSTER_NAME}" --cluster-namespace default \
             --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
-        ${ssh_cmd} tar czf "${log_dir}.tgz" "${log_dir}"
+        ${ssh_cmd} bash -c "chmod -R +r ${log_dir}; tar czf ${log_dir}.tgz ${log_dir}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
     elif [ "$1" == 'child' ]; then
         _set_child_vars
@@ -1425,7 +1425,7 @@ function collect_logs() {
         ${ssh_cmd} bash -c "'[ -d ${log_dir} ]' && rm -rf ${log_dir} || true"
         ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_CHILD_CLUSTER_NAME}" --cluster-namespace "${MCC_CHILD_CLUSTER_NAMESPACE}" \
             --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
-        ${ssh_cmd} tar czf "${log_dir}.tgz" "${log_dir}"
+        ${ssh_cmd} bash -c "chmod -R +r ${log_dir}; tar czf ${log_dir}.tgz ${log_dir}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
     else
         echo "${FUNCNAME[0]} takes only 'mgmt' or 'child' values for its parameter"
