@@ -1,15 +1,15 @@
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: KaaSCephCluster
 metadata:
-  name: ceph-{{ MCC_CHILD_CLUSTER_NAME }}
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  name: ceph-{{ MCC_MANAGED_CLUSTER_NAME }}
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
 spec:
   cephClusterSpec:
     network:
       clusterNet: "{{ NETWORK_LCM_SUBNET }}"
       publicNet: "{{ NETWORK_LCM_SUBNET }}"
     nodes:
-      child-control-0:
+      managed-control-0:
         roles:
         - mgr
         - mon
@@ -18,7 +18,7 @@ spec:
         - config:
             deviceClass: ssd
           name: sdb
-      child-control-1:
+      managed-control-1:
         roles:
         - mon
         - mgr
@@ -27,7 +27,7 @@ spec:
         - config:
             deviceClass: ssd
           name: sdb
-      child-control-2:
+      managed-control-2:
         roles:
         - mgr
         - mon
@@ -95,5 +95,5 @@ spec:
     rookConfig:
       osd_pool_default_size: "2"
   k8sCluster:
-    name: {{ MCC_CHILD_CLUSTER_NAME }}
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: {{ MCC_MANAGED_CLUSTER_NAME }}
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}

@@ -45,7 +45,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6240
-      domainName: {{ vm_name_prefix_tmpl }}child-control-0
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-0
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}
@@ -54,7 +54,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6241
-      domainName: {{ vm_name_prefix_tmpl }}child-control-1
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-1
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}
@@ -63,7 +63,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6242
-      domainName: {{ vm_name_prefix_tmpl }}child-control-2
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-2
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}
@@ -72,7 +72,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6250
-      domainName: {{ vm_name_prefix_tmpl }}child-worker-0
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-0
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}
@@ -81,7 +81,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6251
-      domainName: {{ vm_name_prefix_tmpl }}child-worker-1
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-1
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}
@@ -90,7 +90,7 @@ spec:
       password: password
       address: 127.0.0.1
       port: 6252
-      domainName: {{ vm_name_prefix_tmpl }}child-worker-2
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-2
       vsphereAddress: {{ VSPHERE_SERVER }}
       vsphereUsername: {{ VSPHERE_USERNAME }}
       vspherePassword: {{ VSPHERE_PASSWORD }}

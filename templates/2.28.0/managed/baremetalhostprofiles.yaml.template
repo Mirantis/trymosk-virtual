@@ -1,6 +1,6 @@
 apiVersion: metal3.io/v1alpha1
 metadata:
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
   name: default-2disks
   labels:
     kaas.mirantis.com/defaultBMHProfile: 'true'

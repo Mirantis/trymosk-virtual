@@ -3,8 +3,8 @@ kind: Cluster
 metadata:
   labels:
     kaas.mirantis.com/provider: baremetal
-  name: {{ MCC_CHILD_CLUSTER_NAME }}
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  name: {{ MCC_MANAGED_CLUSTER_NAME }}
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
 spec:
   clusterNetwork:
     pods:
@@ -37,4 +37,4 @@ spec:
         values: {}
       publicKeys:
       - name: user-key
-      release: {{ MCC_CHILD_CLUSTER_RELEASE }}
+      release: {{ MCC_MANAGED_CLUSTER_RELEASE }}

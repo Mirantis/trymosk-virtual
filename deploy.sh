@@ -67,15 +67,15 @@ function set_vars {
     : "${MGMT_MACHINES_CPU_NUM:=8}"
     : "${MGMT_MACHINES_MEMORY_MB:=32768}"
     : "${MGMT_MACHINES_DISK_SIZE:=150GiB}"
-    # Child cluster machines
-    : "${CHILD_WORKER_MACHINES_CPU_NUM:=8}"
-    : "${CHILD_CONTROL_MACHINES_CPU_NUM:=8}"
-    : "${CHILD_WORKER_MACHINES_MEMORY_MB:=24576}"
-    : "${CHILD_CONTROL_MACHINES_MEMORY_MB:=32768}"
+    # Managed cluster machines
+    : "${MANAGED_WORKER_MACHINES_CPU_NUM:=8}"
+    : "${MANAGED_CONTROL_MACHINES_CPU_NUM:=8}"
+    : "${MANAGED_WORKER_MACHINES_MEMORY_MB:=24576}"
+    : "${MANAGED_CONTROL_MACHINES_MEMORY_MB:=32768}"
     # root disk
-    : "${CHILD_MACHINES_ROOT_DISK_SIZE:=80GiB}"
+    : "${MANAGED_MACHINES_ROOT_DISK_SIZE:=80GiB}"
     # Ceph disk
-    : "${CHILD_MACHINES_CEPH_DISK_SIZE:=40GiB}"
+    : "${MANAGED_MACHINES_CEPH_DISK_SIZE:=40GiB}"
 
     # SSH variables
     : "${SSH_PRIVATE_KEY_PATH:="${work_dir}/mcc_id_rsa"}"
@@ -90,8 +90,8 @@ function set_vars {
 
     # Timeout variables
     : "${MGMT_CLUSTER_READINESS_TIMEOUT:=90}"
-    : "${CHILD_CLUSTER_READINESS_TIMEOUT:=90}"
-    : "${CHILD_CEPH_CLUSTER_TIMEOUT:=20}"
+    : "${MANAGED_CLUSTER_READINESS_TIMEOUT:=90}"
+    : "${MANAGED_CEPH_CLUSTER_TIMEOUT:=20}"
     : "${OSDPL_APPLIED_TIMEOUT:=60}"
     : "${OPENSTACK_READINESS_TIMEOUT:=90}"
     : "${BMH_READINESS_TIMEOUT:=30}"
@@ -127,11 +127,11 @@ function set_vars {
     export MCC_SERVICEUSER_PASSWORD="${MCC_SERVICEUSER_PASSWORD:=}"
     : "${MCC_LICENSE_FILE:="mirantis.lic"}"
 
-    # MCC child cluster variables
-    export MCC_CHILD_CLUSTER_NAME="${MCC_CHILD_CLUSTER_NAME:="mcc-child"}"
-    export MCC_CHILD_CLUSTER_NAMESPACE="${MCC_CHILD_CLUSTER_NAMESPACE:="child-ns"}"
-    export MCC_CHILD_CLUSTER_RELEASE="${MCC_CHILD_CLUSTER_RELEASE:=""}"
-    export MCC_CHILD_OPENSTACK_RELEASE="${MCC_CHILD_OPENSTACK_RELEASE:="antelope"}"
+    # MCC managed cluster variables
+    export MCC_MANAGED_CLUSTER_NAME="${MCC_MANAGED_CLUSTER_NAME:="mcc-managed"}"
+    export MCC_MANAGED_CLUSTER_NAMESPACE="${MCC_MANAGED_CLUSTER_NAMESPACE:="managed-ns"}"
+    export MCC_MANAGED_CLUSTER_RELEASE="${MCC_MANAGED_CLUSTER_RELEASE:=""}"
+    export MCC_MANAGED_OPENSTACK_RELEASE="${MCC_MANAGED_OPENSTACK_RELEASE:="antelope"}"
     export MCC_OPENSTACK_PUBLIC_DOMAIN="${MCC_OPENSTACK_PUBLIC_DOMAIN:="it.just.works"}"
 
     # ==================================================================================
@@ -189,21 +189,21 @@ function _prepare_lcm_net_vars() {
         # If NETWORK_LCM_RANGE is not provided, we expect to get more detailed input
         if [ -z "${NETWORK_LCM_SEED_IP}" ] || \
             [ -z "${NETWORK_LCM_MGMT_LB_HOST}" ] || \
-            [ -z "${NETWORK_LCM_CHILD_LB_HOST}" ] || \
+            [ -z "${NETWORK_LCM_MANAGED_LB_HOST}" ] || \
             [ -z "${NETWORK_LCM_METALLB_RANGE_MGMT}" ] || \
             [ -z "${NETWORK_LCM_STATIC_RANGE_MGMT}" ] || \
-            [ -z "${NETWORK_LCM_METALLB_RANGE_CHILD}" ] || \
-            [ -z "${NETWORK_LCM_STATIC_RANGE_CHILD}" ] || \
+            [ -z "${NETWORK_LCM_METALLB_RANGE_MANAGED}" ] || \
+            [ -z "${NETWORK_LCM_STATIC_RANGE_MANAGED}" ] || \
             [ -z "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}" ]; then
             echo "Error: some LCM network variables are not set, but mandatory:
                 NETWORK_LCM_SUBNET: ${NETWORK_LCM_SUBNET}
                 NETWORK_LCM_GATEWAY: ${NETWORK_LCM_GATEWAY}
                 NETWORK_LCM_MGMT_LB_HOST: ${NETWORK_LCM_MGMT_LB_HOST}
                 NETWORK_LCM_MGMT_LB_HOST: ${NETWORK_LCM_MGMT_LB_HOST}
-                NETWORK_LCM_CHILD_LB_HOST: ${NETWORK_LCM_CHILD_LB_HOST}
+                NETWORK_LCM_MANAGED_LB_HOST: ${NETWORK_LCM_MANAGED_LB_HOST}
                 NETWORK_LCM_METALLB_RANGE_MGMT: ${NETWORK_LCM_METALLB_RANGE_MGMT}
-                NETWORK_LCM_METALLB_RANGE_CHILD: ${NETWORK_LCM_METALLB_RANGE_CHILD}
-                NETWORK_LCM_STATIC_RANGE_CHILD: ${NETWORK_LCM_STATIC_RANGE_CHILD}
+                NETWORK_LCM_METALLB_RANGE_MANAGED: ${NETWORK_LCM_METALLB_RANGE_MANAGED}
+                NETWORK_LCM_STATIC_RANGE_MANAGED: ${NETWORK_LCM_STATIC_RANGE_MANAGED}
                 NETWORK_LCM_METALLB_OPENSTACK_ADDRESS: ${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}
             "
             exit 1
@@ -212,11 +212,11 @@ function _prepare_lcm_net_vars() {
 
     export NETWORK_LCM_SEED_IP="${NETWORK_LCM_SEED_IP:=}"
     export NETWORK_LCM_MGMT_LB_HOST="${NETWORK_LCM_MGMT_LB_HOST:=}"
-    export NETWORK_LCM_CHILD_LB_HOST="${NETWORK_LCM_CHILD_LB_HOST:=}"
+    export NETWORK_LCM_MANAGED_LB_HOST="${NETWORK_LCM_MANAGED_LB_HOST:=}"
     export NETWORK_LCM_METALLB_RANGE_MGMT="${NETWORK_LCM_METALLB_RANGE_MGMT:=}"
     export NETWORK_LCM_STATIC_RANGE_MGMT="${NETWORK_LCM_STATIC_RANGE_MGMT:=}"
-    export NETWORK_LCM_METALLB_RANGE_CHILD="${NETWORK_LCM_METALLB_RANGE_CHILD:=}"
-    export NETWORK_LCM_STATIC_RANGE_CHILD="${NETWORK_LCM_STATIC_RANGE_CHILD:=}"
+    export NETWORK_LCM_METALLB_RANGE_MANAGED="${NETWORK_LCM_METALLB_RANGE_MANAGED:=}"
+    export NETWORK_LCM_STATIC_RANGE_MANAGED="${NETWORK_LCM_STATIC_RANGE_MANAGED:=}"
     export NETWORK_LCM_METALLB_OPENSTACK_ADDRESS="${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS:=}"
 }
 
@@ -249,30 +249,30 @@ function usage() {
     echo "  all                                       starts MCC environment deployment:"
     echo "                                              1.  create_seed_vm"
     echo "                                              2.  create_mgmt_cluster_vms"
-    echo "                                              3.  create_child_cluster_vms"
+    echo "                                              3.  create_managed_cluster_vms"
     echo "                                              4.  prepare_mgmt_cluster_templates"
     echo "                                              5.  setup_bootstrap_cluster"
-    echo "                                              6.  prepare_child_cluster_templates"
+    echo "                                              6.  prepare_managed_cluster_templates"
     echo "                                              7.  deploy_mgmt_cluster"
-    echo "                                              8.  deploy_child_cluster"
+    echo "                                              8.  deploy_managed_cluster"
     echo "                                              9.  deploy_openstack"
     echo "                                              10. apply_coredns_hack"
     echo "  create_seed_vm                            creates seed node VM"
     echo "  setup_bootstrap_cluster                   creates a Kind bootstrap cluster on seed node"
     echo "  create_mgmt_cluster_vms                   creates a set of VMs for management cluster"
-    echo "  create_child_cluster_vms                  creates a set if VMs for child cluster"
+    echo "  create_managed_cluster_vms                  creates a set if VMs for managed cluster"
     echo "  prepare_mgmt_cluster_templates            renders k8s objects templates for management cluster deployment. Result is stored in ${work_dir}/templates/management"
-    echo "  prepare_child_cluster_templates           renders k8s objects templates for child cluster deployment. Result is stored in ${work_dir}/templates/child"
+    echo "  prepare_managed_cluster_templates           renders k8s objects templates for managed cluster deployment. Result is stored in ${work_dir}/templates/managed"
     echo "  deploy_mgmt_cluster                       deploys management cluster by applying rendered k8s objects YAMLs (after 'prepare_mgmt_cluster_templates' action)"
-    echo "  deploy_child_cluster                      deploys child cluster by applying rendered k8s objects YAMLs (after 'prepare_child_cluster_templates' action)"
-    echo "  apply_coredns_hack                        apply hack for coredns on child cluster. Note: custom Openstack hostnames have to be resolved inside child cluster,"
+    echo "  deploy_managed_cluster                      deploys managed cluster by applying rendered k8s objects YAMLs (after 'prepare_managed_cluster_templates' action)"
+    echo "  apply_coredns_hack                        apply hack for coredns on managed cluster. Note: custom Openstack hostnames have to be resolved inside managed cluster,"
     echo "                                            otherwise the Openstack endpoints are not accessible. If user adds Openstack endpoints to the DNS, the hack is not needed"
     echo "  cleanup                                   cleanup VMs from the provided folder on Vsphere"
     echo "  cleanup_bootstrap_cluster                 cleanup bootstrap cluster from seed node. Useful when management cluster deployment"
     echo "                                            is required to be restarted from scratch"
     echo "  collect_mgmt_cluster_logs                 collects mgmt cluster logs via 'container-cloud collect logs' command on seed node, packs to logs.tar.gz and copies into ${work_dir}"
-    echo "  collect_child_cluster_logs                collects child cluster logs via 'container-cloud collect logs' command on seed node, packs to logs.tar.gz and copies into ${work_dir}"
-    echo "  collect_logs                              combines collect_mgmt_cluster_logs and collect_child_cluster_logs"
+    echo "  collect_managed_cluster_logs                collects managed cluster logs via 'container-cloud collect logs' command on seed node, packs to logs.tar.gz and copies into ${work_dir}"
+    echo "  collect_logs                              combines collect_mgmt_cluster_logs and collect_managed_cluster_logs"
     echo "  help                                      shows this help message"
     echo ""
     echo "Required binaries:"
@@ -302,7 +302,7 @@ function usage() {
     echo "    VSPHERE_DATACENTER                        Vsphere datacenter name"
     echo "    VSPHERE_DATASTORE                         Vsphere datastore full path (preferred) or name. Example /<datacenter-name>/datastore/<datastore-name>"
     echo "    VSPHERE_DATASTORE_MGMT_CLUSTER            Vsphere datastore full path (preferred) or name for management cluster machines. Example /<datacenter-name>/datastore/<datastore-name>"
-    echo "    VSPHERE_DATASTORE_CHILD_CLUSTER           Vsphere datastore full path (preferred) or name for child cluster machines. Example /<datacenter-name>/datastore/<datastore-name>"
+    echo "    VSPHERE_DATASTORE_MANAGED_CLUSTER           Vsphere datastore full path (preferred) or name for managed cluster machines. Example /<datacenter-name>/datastore/<datastore-name>"
     echo "    VSPHERE_NETWORK_LCM                       Vsphere network full path (preferred) or name fosr MCC. Example /<datacenter-name>/network/<network-name>"
     echo "    VSPHERE_NETWORK_OPENSTACK                 Vsphere network full path (preferred) or name for Openstack. Example /<datacenter-name>/network/<network-name>"
     echo "    VSPHERE_RESOURCE_POOL                     Vsphere resource pool full path (preferred) or name. Example /<datacenter-name>/host/<cluster-name>/Resources/<pool-name>"
@@ -325,11 +325,11 @@ function usage() {
     echo ""
     echo "      NETWORK_LCM_SEED_IP                     Seed node address"
     echo "      NETWORK_LCM_MGMT_LB_HOST                Load balancer address for MCC management cluster"
-    echo "      NETWORK_LCM_CHILD_LB_HOST               Load balancer address for MCC child cluster"
+    echo "      NETWORK_LCM_MANAGED_LB_HOST               Load balancer address for MCC managed cluster"
     echo "      NETWORK_LCM_METALLB_RANGE_MGMT          Metallb address range for MCC management cluster"
     echo "      NETWORK_LCM_STATIC_RANGE_MGMT           Address range for MCC management cluster nodes"
-    echo "      NETWORK_LCM_METALLB_RANGE_CHILD         Metallb address range for MCC child cluster"
-    echo "      NETWORK_LCM_STATIC_RANGE_CHILD          Address range for MCC child cluster nodes"
+    echo "      NETWORK_LCM_METALLB_RANGE_MANAGED         Metallb address range for MCC managed cluster"
+    echo "      NETWORK_LCM_STATIC_RANGE_MANAGED          Address range for MCC managed cluster nodes"
     echo "      NETWORK_LCM_METALLB_OPENSTACK_ADDRESS   Adress for Openstack services"
     echo ""
     echo "    Openstack network:"
@@ -350,21 +350,21 @@ function usage() {
     echo "    MGMT_MACHINES_MEMORY_MB                   Management cluster machines RAM in MB. Default is 32768"
     echo "    MGMT_MACHINES_CPU_NUM                     Management cluster machines CPU. Default is 8"
     echo "    MGMT_MACHINES_DISK_SIZE                   Management cluster machines disk size. Default is 150GiB"
-    echo "    CHILD_CONTROL_MACHINES_CPU_NUM            Child cluster control machines CPU num. Default is 8"
-    echo "    CHILD_CONTROL_MACHINES_MEMORY_MB          Child cluster control machines RAM in MB. Default is 32768"
-    echo "    CHILD_WORKER_MACHINES_CPU_NUM             Child cluster worker machines CPU num. Default is 8"
-    echo "    CHILD_WORKER_MACHINES_MEMORY_MB           Child cluster worker machines RAM in MB. Default is 24576"
-    echo "    CHILD_MACHINES_ROOT_DISK_SIZE             Child cluster machines disk size for /root partition. Default is 80GiB"
-    echo "    CHILD_MACHINES_CEPH_DISK_SIZE             Child cluster machines disk size for ceph. Default is 40GiB"
+    echo "    MANAGED_CONTROL_MACHINES_CPU_NUM            Managed cluster control machines CPU num. Default is 8"
+    echo "    MANAGED_CONTROL_MACHINES_MEMORY_MB          Managed cluster control machines RAM in MB. Default is 32768"
+    echo "    MANAGED_WORKER_MACHINES_CPU_NUM             Managed cluster worker machines CPU num. Default is 8"
+    echo "    MANAGED_WORKER_MACHINES_MEMORY_MB           Managed cluster worker machines RAM in MB. Default is 24576"
+    echo "    MANAGED_MACHINES_ROOT_DISK_SIZE             Managed cluster machines disk size for /root partition. Default is 80GiB"
+    echo "    MANAGED_MACHINES_CEPH_DISK_SIZE             Managed cluster machines disk size for ceph. Default is 40GiB"
     echo ""
     echo "  MCC variables:"
     echo "     MCC_MGMT_CLUSTER_NAME                    Name for MCC management cluster. Default is mcc-mgmt"
     echo "     MCC_SERVICEUSER_PASSWORD                 'serviceuser' password to access MCC management cluster web UI. Default is auto-generated"
     echo "     MCC_LICENSE_FILE                         Local path to MCC licence file"
-    echo "     MCC_CHILD_CLUSTER_NAME                   Name for MCC child cluster. Default is mcc-child"
-    echo "     MCC_CHILD_CLUSTER_NAMESPACE              Namespace where MCC child cluster is going to be created. Defaults is child-ns"
-    echo "     MCC_CHILD_CLUSTER_RELEASE                Cluster release for MCC child cluster. Default is auto-selected"
-    echo "     MCC_CHILD_OPENSTACK_RELEASE              Openstack release for MCC child cluster. Default is auto-selected"
+    echo "     MCC_MANAGED_CLUSTER_NAME                   Name for MCC managed cluster. Default is mcc-managed"
+    echo "     MCC_MANAGED_CLUSTER_NAMESPACE              Namespace where MCC managed cluster is going to be created. Defaults is managed-ns"
+    echo "     MCC_MANAGED_CLUSTER_RELEASE                Cluster release for MCC managed cluster. Default is auto-selected"
+    echo "     MCC_MANAGED_OPENSTACK_RELEASE              Openstack release for MCC managed cluster. Default is auto-selected"
     echo "     MCC_OPENSTACK_PUBLIC_DOMAIN              Public domain for Openstack"
     echo ""
     echo "  Proxy variables:"
@@ -389,8 +389,8 @@ function usage() {
     echo "    MGMT_CLUSTER_READINESS_TIMEOUT            Time to wait for mgmt cluster object readiness. Default: 90 (min)"
     echo "                                              MCC artifacts (container images, helm charts etc.) may take more time to download"
     echo "                                              on a poor Internet connection (f.e. via proxy)"
-    echo "    CHILD_CLUSTER_READINESS_TIMEOUT           Time to wait for child cluster object readiness. Default: 90 (min)"
-    echo "    CHILD_CEPH_CLUSTER_TIMEOUT                Time to wait for kaascephcluster object readiness on child. Default: 20 (min)"
+    echo "    MANAGED_CLUSTER_READINESS_TIMEOUT           Time to wait for managed cluster object readiness. Default: 90 (min)"
+    echo "    MANAGED_CEPH_CLUSTER_TIMEOUT                Time to wait for kaascephcluster object readiness on managed. Default: 20 (min)"
     echo "    OSDPL_APPLIED_TIMEOUT                     Time to wait for osdpl object state 'APPLIED'. Default: 60 (min)"
     echo "    OPENSTACK_READINESS_TIMEOUT               Time to wait for the all openstack components readiness. Default: 90 (min)"
     echo "    BMH_READINESS_TIMEOUT                     Time to wait for all baremetalhosts (per cluster) became 'available' or 'provisioned'. Default: 30 (min)"
@@ -452,7 +452,7 @@ function collect_vsphere_vars {
     : "${VSPHERE_DATACENTER:=}"
     : "${VSPHERE_DATASTORE:=}"
     : "${VSPHERE_DATASTORE_MGMT_CLUSTER:="${VSPHERE_DATASTORE}"}"
-    : "${VSPHERE_DATASTORE_CHILD_CLUSTER:="${VSPHERE_DATASTORE}"}"
+    : "${VSPHERE_DATASTORE_MANAGED_CLUSTER:="${VSPHERE_DATASTORE}"}"
     : "${VSPHERE_NETWORK_LCM:=}"
     : "${VSPHERE_NETWORK_OPENSTACK:=}"
     : "${VSPHERE_RESOURCE_POOL:=}"
@@ -494,8 +494,8 @@ function collect_vsphere_vars {
             echo "VSPHERE_DATASTORE_MGMT_CLUSTER or VSPHERE_DATASTORE must be provided"
             exit 1
         fi
-        if [ -z "${VSPHERE_DATASTORE_CHILD_CLUSTER}" ]; then
-            echo "VSPHERE_DATASTORE_CHILD_CLUSTER or VSPHERE_DATASTORE must be provided"
+        if [ -z "${VSPHERE_DATASTORE_MANAGED_CLUSTER}" ]; then
+            echo "VSPHERE_DATASTORE_MANAGED_CLUSTER or VSPHERE_DATASTORE must be provided"
             exit 1
         fi
     fi
@@ -591,8 +591,8 @@ function verify_vsphere_objects {
     if [ -n "${VSPHERE_DATASTORE_MGMT_CLUSTER}" ] && [ "${VSPHERE_DATASTORE_MGMT_CLUSTER}" != "${VSPHERE_DATASTORE}" ]; then
         ${GOVC_BIN} datastore.info "${VSPHERE_DATASTORE_MGMT_CLUSTER}"
     fi
-    if [ -n "${VSPHERE_DATASTORE_CHILD_CLUSTER}" ] && [ "${VSPHERE_DATASTORE_CHILD_CLUSTER}" != "${VSPHERE_DATASTORE}" ]; then
-        ${GOVC_BIN} datastore.info "${VSPHERE_DATASTORE_CHILD_CLUSTER}"
+    if [ -n "${VSPHERE_DATASTORE_MANAGED_CLUSTER}" ] && [ "${VSPHERE_DATASTORE_MANAGED_CLUSTER}" != "${VSPHERE_DATASTORE}" ]; then
+        ${GOVC_BIN} datastore.info "${VSPHERE_DATASTORE_MANAGED_CLUSTER}"
     fi
     # 2. Networks
     ${GOVC_BIN} object.collect "${VSPHERE_NETWORK_LCM}"
@@ -677,19 +677,19 @@ function prepare_ssh_key {
 function _set_vsphere_vm_vars {
     seed_folder="${VSPHERE_FOLDER}/seed"
     mgmt_folder="${VSPHERE_FOLDER}/management"
-    child_folder="${VSPHERE_FOLDER}/child"
+    managed_folder="${VSPHERE_FOLDER}/managed"
 
     seed_base_name="mcc-seed"
     mgmt_machine_name_prefix="mgmt-master"
-    child_control_machine_name_prefix="child-control"
-    child_worker_machine_name_prefix="child-worker"
+    managed_control_machine_name_prefix="managed-control"
+    managed_worker_machine_name_prefix="managed-worker"
     export vm_name_prefix_tmpl=""
     if [ -n "${VM_NAME_PREFIX}" ]; then
         vm_name_prefix_tmpl="${VM_NAME_PREFIX}-"
         seed_base_name="${VM_NAME_PREFIX}-${seed_base_name}"
         mgmt_machine_name_prefix="${VM_NAME_PREFIX}-${mgmt_machine_name_prefix}"
-        child_control_machine_name_prefix="${VM_NAME_PREFIX}-${child_control_machine_name_prefix}"
-        child_worker_machine_name_prefix="${VM_NAME_PREFIX}-${child_worker_machine_name_prefix}"
+        managed_control_machine_name_prefix="${VM_NAME_PREFIX}-${managed_control_machine_name_prefix}"
+        managed_worker_machine_name_prefix="${VM_NAME_PREFIX}-${managed_worker_machine_name_prefix}"
     fi
     seed_full_name="${seed_folder}/${seed_base_name}"
 
@@ -839,54 +839,54 @@ function create_mgmt_cluster_vms {
     echo "Vsphere management cluster VMs have been created"
 }
 
-function create_child_cluster_vms {
+function create_managed_cluster_vms {
     _print_header "${FUNCNAME[0]}"
     _set_vsphere_vm_vars
 
-    ${GOVC_BIN} folder.info "${child_folder}" || ${GOVC_BIN} folder.create "${child_folder}"
+    ${GOVC_BIN} folder.info "${managed_folder}" || ${GOVC_BIN} folder.create "${managed_folder}"
 
     local disk_id
-    # Create child cluster VMs for control plane
+    # Create managed cluster VMs for control plane
     for (( num=0; num<3; num++ )); do
-        machine_name="${child_control_machine_name_prefix}-$num"
-        ${GOVC_BIN} vm.create -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" \
+        machine_name="${managed_control_machine_name_prefix}-$num"
+        ${GOVC_BIN} vm.create -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" \
             -pool="${VSPHERE_RESOURCE_POOL}"  \
-            -folder "${child_folder}" \
+            -folder "${managed_folder}" \
             -net "${VSPHERE_NETWORK_LCM}" \
             -on=false \
-            -m="${CHILD_CONTROL_MACHINES_MEMORY_MB}" \
-            -c="${CHILD_CONTROL_MACHINES_CPU_NUM}" \
-            -disk="${CHILD_MACHINES_ROOT_DISK_SIZE}" \
+            -m="${MANAGED_CONTROL_MACHINES_MEMORY_MB}" \
+            -c="${MANAGED_CONTROL_MACHINES_CPU_NUM}" \
+            -disk="${MANAGED_MACHINES_ROOT_DISK_SIZE}" \
             "${machine_name}"
 
-        ${GOVC_BIN} vm.change -vm "${child_folder}/${machine_name}" -e disk.EnableUUID=TRUE
-        disk_id="$(${GOVC_BIN} disk.create -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" \
-            -size "${CHILD_MACHINES_CEPH_DISK_SIZE}" "${machine_name}-disk-2" | tail -n 1)"
-        ${GOVC_BIN} disk.attach -vm "${child_folder}/${machine_name}" -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" "${disk_id}"
-        ${GOVC_BIN} vm.network.add -net "${VSPHERE_NETWORK_OPENSTACK}" -vm "${child_folder}/${machine_name}"
+        ${GOVC_BIN} vm.change -vm "${managed_folder}/${machine_name}" -e disk.EnableUUID=TRUE
+        disk_id="$(${GOVC_BIN} disk.create -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" \
+            -size "${MANAGED_MACHINES_CEPH_DISK_SIZE}" "${machine_name}-disk-2" | tail -n 1)"
+        ${GOVC_BIN} disk.attach -vm "${managed_folder}/${machine_name}" -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" "${disk_id}"
+        ${GOVC_BIN} vm.network.add -net "${VSPHERE_NETWORK_OPENSTACK}" -vm "${managed_folder}/${machine_name}"
     done
 
-    # Create child cluster VMs for workers/computes
+    # Create managed cluster VMs for workers/computes
     for (( num=0; num<3; num++ )); do
-        machine_name="${child_worker_machine_name_prefix}-$num"
-        ${GOVC_BIN} vm.create -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" \
+        machine_name="${managed_worker_machine_name_prefix}-$num"
+        ${GOVC_BIN} vm.create -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" \
             -pool="${VSPHERE_RESOURCE_POOL}"  \
-            -folder "${child_folder}" \
+            -folder "${managed_folder}" \
             -net "${VSPHERE_NETWORK_LCM}" \
             -on=false \
-            -m="${CHILD_WORKER_MACHINES_MEMORY_MB}" \
-            -c="${CHILD_WORKER_MACHINES_CPU_NUM}" \
-            -disk="${CHILD_MACHINES_ROOT_DISK_SIZE}" \
+            -m="${MANAGED_WORKER_MACHINES_MEMORY_MB}" \
+            -c="${MANAGED_WORKER_MACHINES_CPU_NUM}" \
+            -disk="${MANAGED_MACHINES_ROOT_DISK_SIZE}" \
             "${machine_name}"
 
-        ${GOVC_BIN} vm.change -vm "${child_folder}/${machine_name}" -e disk.EnableUUID=TRUE -nested-hv-enabled TRUE
-        disk_id="$(${GOVC_BIN} disk.create -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" \
-            -size "${CHILD_MACHINES_CEPH_DISK_SIZE}" "${machine_name}-disk-2" | tail -n 1)"
-        ${GOVC_BIN} disk.attach -vm "${child_folder}/${machine_name}" -ds="${VSPHERE_DATASTORE_CHILD_CLUSTER}" "${disk_id}"
-        ${GOVC_BIN} vm.network.add -net "${VSPHERE_NETWORK_OPENSTACK}" -vm "${child_folder}/${machine_name}"
+        ${GOVC_BIN} vm.change -vm "${managed_folder}/${machine_name}" -e disk.EnableUUID=TRUE -nested-hv-enabled TRUE
+        disk_id="$(${GOVC_BIN} disk.create -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" \
+            -size "${MANAGED_MACHINES_CEPH_DISK_SIZE}" "${machine_name}-disk-2" | tail -n 1)"
+        ${GOVC_BIN} disk.attach -vm "${managed_folder}/${machine_name}" -ds="${VSPHERE_DATASTORE_MANAGED_CLUSTER}" "${disk_id}"
+        ${GOVC_BIN} vm.network.add -net "${VSPHERE_NETWORK_OPENSTACK}" -vm "${managed_folder}/${machine_name}"
     done
 
-    echo "Vsphere child cluster VMs have been created"
+    echo "Vsphere managed cluster VMs have been created"
 }
 
 function wait_for_seed_ssh_available {
@@ -937,7 +937,7 @@ function prepare_mgmt_cluster_templates {
     done
 }
 
-function prepare_child_cluster_templates {
+function prepare_managed_cluster_templates {
     _print_header "${FUNCNAME[0]}"
     # shellcheck source=/dev/null
     [ -f "${mcc_version_file}" ] && source "${mcc_version_file}"
@@ -947,47 +947,47 @@ function prepare_child_cluster_templates {
     fi
 
     _set_vsphere_vm_vars
-    export child_control_mac_address_0 child_control_mac_address_1 child_control_mac_address_2
-    child_control_mac_address_0="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_control_machine_name_prefix}-0" \
+    export managed_control_mac_address_0 managed_control_mac_address_1 managed_control_mac_address_2
+    managed_control_mac_address_0="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_control_machine_name_prefix}-0" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
-    child_control_mac_address_1="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_control_machine_name_prefix}-1" \
+    managed_control_mac_address_1="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_control_machine_name_prefix}-1" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
-    child_control_mac_address_2="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_control_machine_name_prefix}-2" \
+    managed_control_mac_address_2="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_control_machine_name_prefix}-2" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
 
-    export child_worker_mac_address_0 child_worker_mac_address_1 child_worker_mac_address_2
-    child_worker_mac_address_0="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_worker_machine_name_prefix}-0" \
+    export managed_worker_mac_address_0 managed_worker_mac_address_1 managed_worker_mac_address_2
+    managed_worker_mac_address_0="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_worker_machine_name_prefix}-0" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
-    child_worker_mac_address_1="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_worker_machine_name_prefix}-1" \
+    managed_worker_mac_address_1="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_worker_machine_name_prefix}-1" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
-    child_worker_mac_address_2="$(${GOVC_BIN} vm.info -json "${child_folder}/${child_worker_machine_name_prefix}-2" \
+    managed_worker_mac_address_2="$(${GOVC_BIN} vm.info -json "${managed_folder}/${managed_worker_machine_name_prefix}-2" \
         | ${jq_bin} -r '.virtualMachines[0].config.hardware.device[] | select (.deviceInfo.label == "Network adapter 1") | .macAddress')"
 
     _set_bootstrap_vars
 
-    if [ -z "${MCC_CHILD_CLUSTER_RELEASE}" ]; then
-        MCC_CHILD_CLUSTER_RELEASE="$(${ssh_cmd} "/home/${SEED_NODE_USER}/yq" \
+    if [ -z "${MCC_MANAGED_CLUSTER_RELEASE}" ]; then
+        MCC_MANAGED_CLUSTER_RELEASE="$(${ssh_cmd} "/home/${SEED_NODE_USER}/yq" \
             eval '.spec.supportedClusterReleases[0].name' \
             "/home/${SEED_NODE_USER}/kaas-bootstrap/releases/kaas/${MCC_VERSION}.yaml")"
     fi
 
     _set_ssh_public_key_var
     _set_templates_dir_vars
-    rm -rf "${child_templates_work_dir}" && mkdir -p "${child_templates_work_dir}"
-    ${ssh_cmd} mkdir -p "${child_templates_remote_dir}"
+    rm -rf "${managed_templates_work_dir}" && mkdir -p "${managed_templates_work_dir}"
+    ${ssh_cmd} mkdir -p "${managed_templates_remote_dir}"
 
     local f_b_name
     # shellcheck disable=SC2044
-    for file in $(find "${child_templates_local_dir}" -maxdepth 1 -type f  -name "*.template"); do
+    for file in $(find "${managed_templates_local_dir}" -maxdepth 1 -type f  -name "*.template"); do
         f_b_name=$(basename "${file}")
-        render_template < "${file}" > "${child_templates_work_dir}/${f_b_name%.tmpl}"
-        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${child_templates_work_dir}/${f_b_name%.tmpl}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${child_templates_remote_dir}"
+        render_template < "${file}" > "${managed_templates_work_dir}/${f_b_name%.tmpl}"
+        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${managed_templates_work_dir}/${f_b_name%.tmpl}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}"
     done
 
-    ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" -r "${child_templates_local_dir}/certs" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${child_templates_remote_dir}/certs"
-    ${ssh_cmd} chmod +x "${child_templates_remote_dir}/certs/create_secrets.sh"
+    ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" -r "${managed_templates_local_dir}/certs" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}/certs"
+    ${ssh_cmd} chmod +x "${managed_templates_remote_dir}/certs/create_secrets.sh"
 
-    cp -r "${child_templates_local_dir}/hack" "${child_templates_work_dir}/hack"
+    cp -r "${managed_templates_local_dir}/hack" "${managed_templates_work_dir}/hack"
 }
 
 function setup_seed {
@@ -1085,9 +1085,9 @@ function _set_mgmt_vars {
     remote_container_cloud_cmd="${ssh_cmd} ${kubectl_file_var} /home/${SEED_NODE_USER}/kaas-bootstrap/container-cloud"
 }
 
-function _set_child_vars {
+function _set_managed_vars {
     ssh_cmd="${ssh_bin} -i ${SSH_PRIVATE_KEY_PATH} ${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}"
-    kubectl_file_var="KUBECONFIG=/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_CHILD_CLUSTER_NAME}"
+    kubectl_file_var="KUBECONFIG=/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_MANAGED_CLUSTER_NAME}"
     remote_kubectl_cmd="${ssh_cmd} ${kubectl_file_var} /home/${SEED_NODE_USER}/kaas-bootstrap/bin/kubectl"
     remote_container_cloud_cmd="${ssh_cmd} ${kubectl_file_var} /home/${SEED_NODE_USER}/kaas-bootstrap/container-cloud"
 }
@@ -1104,9 +1104,9 @@ function _set_templates_dir_vars {
     mgmt_templates_local_dir="${script_dir}/templates/${MCC_VERSION%-rc}/management/"
     mgmt_templates_remote_dir="/home/${SEED_NODE_USER}/kaas-bootstrap/templates/bm"
 
-    child_templates_work_dir="${work_dir}/templates/child/"
-    child_templates_local_dir="${script_dir}/templates/${MCC_VERSION%-rc}/child/"
-    child_templates_remote_dir="/home/${SEED_NODE_USER}/kaas-bootstrap/templates/bm/child"
+    managed_templates_work_dir="${work_dir}/templates/managed/"
+    managed_templates_local_dir="${script_dir}/templates/${MCC_VERSION%-rc}/managed/"
+    managed_templates_remote_dir="/home/${SEED_NODE_USER}/kaas-bootstrap/templates/bm/managed"
 }
 
 function deploy_mgmt_cluster {
@@ -1152,12 +1152,12 @@ function deploy_mgmt_cluster {
 
 function apply_coredns_hack {
     _print_header "${FUNCNAME[0]}"
-    _set_child_vars
+    _set_managed_vars
     _set_templates_dir_vars
     # Patch Coredns configmap
-    local hack_dir="${child_templates_work_dir}/hack"
+    local hack_dir="${managed_templates_work_dir}/hack"
     local cm_file="${hack_dir}/coredns.cm.yaml"
-    local remote_cm_file="${child_templates_remote_dir}/coredns.cm.yaml"
+    local remote_cm_file="${managed_templates_remote_dir}/coredns.cm.yaml"
     local cm_content_file="${hack_dir}/coredns.cm.tmp"
 
     export cm_hack_value coredns_cm_content
@@ -1178,50 +1178,50 @@ function apply_coredns_hack {
     # Note: CoreDNS config is reloaded automatically
 }
 
-function deploy_child_cluster {
+function deploy_managed_cluster {
     _print_header "${FUNCNAME[0]}"
     _set_mgmt_vars
     _set_templates_dir_vars
 
-    echo "Creating child cluster objects"
-    ${remote_kubectl_cmd} get namespace "${MCC_CHILD_CLUSTER_NAMESPACE}" || \
-        ${remote_kubectl_cmd} create namespace "${MCC_CHILD_CLUSTER_NAMESPACE}"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/sshkey.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/cluster.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/metallbconfig.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/ipam-objects.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/baremetalhostprofiles.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/baremetalhosts.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/machines.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/kaascephcluster.yaml.template"
+    echo "Creating managed cluster objects"
+    ${remote_kubectl_cmd} get namespace "${MCC_MANAGED_CLUSTER_NAMESPACE}" || \
+        ${remote_kubectl_cmd} create namespace "${MCC_MANAGED_CLUSTER_NAMESPACE}"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/sshkey.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/cluster.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/metallbconfig.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/ipam-objects.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/baremetalhostprofiles.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/baremetalhosts.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/machines.yaml.template"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/kaascephcluster.yaml.template"
 
-    echo "MCC child cluster deployment has been started"
+    echo "MCC managed cluster deployment has been started"
 
     # wait for bmh
     echo "Waiting for Baremetal hosts provisioning"
     local bmh_names
-    bmh_names=$(${remote_kubectl_cmd} -n "${MCC_CHILD_CLUSTER_NAMESPACE}" get bmh -o jsonpath='{.items[*].metadata.name}')
-    _wait_for_objects_statuses "bmh" "${bmh_names}" "${MCC_CHILD_CLUSTER_NAMESPACE}" ".status.provisioning.state" "available,provisioned" "${BMH_READINESS_TIMEOUT}"
+    bmh_names=$(${remote_kubectl_cmd} -n "${MCC_MANAGED_CLUSTER_NAMESPACE}" get bmh -o jsonpath='{.items[*].metadata.name}')
+    _wait_for_objects_statuses "bmh" "${bmh_names}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.provisioning.state" "available,provisioned" "${BMH_READINESS_TIMEOUT}"
 
-    echo "Waiting for child cluster deployment"
-    wait_for_child_cluster
+    echo "Waiting for managed cluster deployment"
+    wait_for_managed_cluster
 
     echo "Waiting for Ceph"
-    _wait_for_object_status kaascephcluster "ceph-${MCC_CHILD_CLUSTER_NAME}" "${MCC_CHILD_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
-        "Ready" "${CHILD_CEPH_CLUSTER_TIMEOUT}" "plain"
+    _wait_for_object_status kaascephcluster "ceph-${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
+        "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
     echo "Ceph cluster is ready"
 
-    echo "Child cluster deployment has been finished successfully"
+    echo "Managed cluster deployment has been finished successfully"
 }
 
 function deploy_openstack {
     _print_header "${FUNCNAME[0]}"
     _set_templates_dir_vars
-    _set_child_vars
+    _set_managed_vars
 
     ${ssh_cmd} "KUBECTL_BIN=/home/${SEED_NODE_USER}/kaas-bootstrap/bin/kubectl \
-        ${kubectl_file_var}" "${child_templates_remote_dir}/certs/create_secrets.sh"
-    ${remote_kubectl_cmd} apply -f "${child_templates_remote_dir}/osdpl.yaml.template"
+        ${kubectl_file_var}" "${managed_templates_remote_dir}/certs/create_secrets.sh"
+    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/osdpl.yaml.template"
 
     echo "Waiting for Openstack"
     _wait_for_object_status openstackdeploymentstatus osh-dev openstack ".status.osdpl.state" "APPLIED" "${OSDPL_APPLIED_TIMEOUT}" "plain"
@@ -1229,7 +1229,7 @@ function deploy_openstack {
     _wait_for_object_status openstackdeploymentstatus osh-dev openstack ".status.health.*.*.status" '^Ready( Ready)*$' "${OPENSTACK_READINESS_TIMEOUT}" "regex"
     echo "Openstack Deployment has been completed"
 
-    # Note: custom Openstack hostnames have to be resolved inside child cluster,
+    # Note: custom Openstack hostnames have to be resolved inside managed cluster,
     # otherwise the Openstack endpoints are not accessible.
     # If user adds Openstack endpoints to the DNS, the hack is not needed
     if [[ "${APPLY_COREDNS_HACK}" =~ [Tt]rue ]]; then
@@ -1266,18 +1266,18 @@ function wait_for_mgmt_cluster {
     echo "Management cluster kubeconfig is saved localy to ${k_f_name_local}"
 }
 
-function wait_for_child_cluster {
+function wait_for_managed_cluster {
     _set_mgmt_vars
-    _wait_for_object_status cluster "${MCC_CHILD_CLUSTER_NAME}" "${MCC_CHILD_CLUSTER_NAMESPACE}" ".status.providerStatus.ready" "true" \
-        "${CHILD_CLUSTER_READINESS_TIMEOUT}" "plain"
+    _wait_for_object_status cluster "${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.providerStatus.ready" "true" \
+        "${MANAGED_CLUSTER_READINESS_TIMEOUT}" "plain"
 
-    local k_f_name_local="${work_dir}/kubeconfig-${MCC_CHILD_CLUSTER_NAME}"
-    local k_f_name_remote="/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_CHILD_CLUSTER_NAME}"
-    ${remote_kubectl_cmd} -n "${MCC_CHILD_CLUSTER_NAMESPACE}" get secret "${MCC_CHILD_CLUSTER_NAME}-kubeconfig" \
+    local k_f_name_local="${work_dir}/kubeconfig-${MCC_MANAGED_CLUSTER_NAME}"
+    local k_f_name_remote="/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_MANAGED_CLUSTER_NAME}"
+    ${remote_kubectl_cmd} -n "${MCC_MANAGED_CLUSTER_NAMESPACE}" get secret "${MCC_MANAGED_CLUSTER_NAME}-kubeconfig" \
         -o jsonpath='{.data.admin\\.conf}' | base64 -d | tee "${k_f_name_local}"
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${k_f_name_local}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${k_f_name_remote}"
 
-    echo "Child cluster kubeconfig is saved localy to ${k_f_name_local}"
+    echo "Managed cluster kubeconfig is saved localy to ${k_f_name_local}"
 }
 
 function _wait_for_objects_statuses {
@@ -1377,13 +1377,13 @@ function cleanup {
     fi
     _set_vsphere_vm_vars
 
-    local mgmt_cluster_vms child_cluster_vms seed_vm
+    local mgmt_cluster_vms managed_cluster_vms seed_vm
     mgmt_cluster_vms=$(${GOVC_BIN} ls "${mgmt_folder}")
-    child_cluster_vms=$(${GOVC_BIN} ls "${child_folder}")
+    managed_cluster_vms=$(${GOVC_BIN} ls "${managed_folder}")
     seed_vm=$(${GOVC_BIN} ls "${seed_folder}")
 
     # shellcheck disable=SC2116
-    for vm in $(echo "${mgmt_cluster_vms}" "${child_cluster_vms}" "${seed_vm}"); do
+    for vm in $(echo "${mgmt_cluster_vms}" "${managed_cluster_vms}" "${seed_vm}"); do
         ${GOVC_BIN} vm.power -off -force "${vm}"
         # Note: all disks are deleted with VM automatically
         ${GOVC_BIN} vm.destroy "${vm}"
@@ -1419,16 +1419,16 @@ function collect_logs() {
             --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
         ${ssh_cmd} "chmod -R +r ${log_dir}; tar czf ${log_dir}.tgz ${log_dir}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
-    elif [ "$1" == 'child' ]; then
-        _set_child_vars
-        local log_dir="/home/${SEED_NODE_USER}/child_logs"
+    elif [ "$1" == 'managed' ]; then
+        _set_managed_vars
+        local log_dir="/home/${SEED_NODE_USER}/managed_logs"
         ${ssh_cmd} "test -d ${log_dir} && rm -rf ${log_dir} || true"
-        ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_CHILD_CLUSTER_NAME}" --cluster-namespace "${MCC_CHILD_CLUSTER_NAMESPACE}" \
+        ${remote_container_cloud_cmd} collect logs --cluster-name "${MCC_MANAGED_CLUSTER_NAME}" --cluster-namespace "${MCC_MANAGED_CLUSTER_NAMESPACE}" \
             --key-file "${seed_node_ssh_key_path}" --management-kubeconfig "${mgmt_kubeconfig_path}" --output-dir "${log_dir}" --extended
         ${ssh_cmd} "chmod -R +r ${log_dir}; tar czf ${log_dir}.tgz ${log_dir}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
     else
-        echo "${FUNCNAME[0]} takes only 'mgmt' or 'child' values for its parameter"
+        echo "${FUNCNAME[0]} takes only 'mgmt' or 'managed' values for its parameter"
         exit 1
     fi
 }
@@ -1505,17 +1505,17 @@ function main {
             create_mgmt_cluster_vms
             exit 0
             ;;
-        create_child_cluster_vms)
+        create_managed_cluster_vms)
             verify_binaries
             set_vars
             if [[ "${SKIP_VSPHERE_VMS_CREATION}" =~ [Tt]rue ]]; then
-                echo "Skipping create_child_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
+                echo "Skipping create_managed_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
                 exit 0
             fi
             ensure_govc_lib
             verify_vsphere_objects
             verify_mcc_vars
-            create_child_cluster_vms
+            create_managed_cluster_vms
             exit 0
             ;;
         prepare_mgmt_cluster_templates)
@@ -1525,11 +1525,11 @@ function main {
             prepare_mgmt_cluster_templates
             exit 0
             ;;
-        prepare_child_cluster_templates)
+        prepare_managed_cluster_templates)
             verify_binaries
             set_vars
             ensure_govc_lib
-            prepare_child_cluster_templates
+            prepare_managed_cluster_templates
             exit 0
             ;;
         deploy_mgmt_cluster)
@@ -1538,10 +1538,10 @@ function main {
             deploy_mgmt_cluster
             exit 0
             ;;
-        deploy_child_cluster)
+        deploy_managed_cluster)
             verify_binaries
             set_vars
-            deploy_child_cluster
+            deploy_managed_cluster
             exit 0
             ;;
         deploy_openstack)
@@ -1561,17 +1561,17 @@ function main {
             collect_logs mgmt
             exit 0
             ;;
-        collect_child_cluster_logs)
+        collect_managed_cluster_logs)
             verify_binaries
             set_vars
-            collect_logs child
+            collect_logs managed
             exit 0
             ;;
         collect_logs)
             verify_binaries
             set_vars
             collect_logs mgmt
-            collect_logs child
+            collect_logs managed
             exit 0
             ;;
         all)
@@ -1589,7 +1589,7 @@ function main {
                     create_seed_vm
                 fi
                 create_mgmt_cluster_vms
-                create_child_cluster_vms
+                create_managed_cluster_vms
             fi
 
             wait_for_seed_ssh_available
@@ -1602,11 +1602,11 @@ function main {
 
             setup_bootstrap_cluster
 
-            prepare_child_cluster_templates
+            prepare_managed_cluster_templates
 
             deploy_mgmt_cluster
 
-            deploy_child_cluster
+            deploy_managed_cluster
 
             deploy_openstack
 

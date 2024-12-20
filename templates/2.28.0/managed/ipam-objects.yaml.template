@@ -3,25 +3,25 @@
 apiVersion: "ipam.mirantis.com/v1alpha1"
 kind: Subnet
 metadata:
-  name: child-k8s-api-lb
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  name: managed-k8s-api-lb
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
   labels:
     kaas.mirantis.com/provider: baremetal
-    cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
     ipam/SVC-LBhost: "presents"
 spec:
-  cidr: {{ NETWORK_LCM_CHILD_LB_HOST }}/32
+  cidr: {{ NETWORK_LCM_MANAGED_LB_HOST }}/32
   useWholeCidr: true
 
 ---
 apiVersion: "ipam.mirantis.com/v1alpha1"
 kind: Subnet
 metadata:
-  name: child-lcm
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  name: managed-lcm
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
   labels:
     kaas.mirantis.com/provider: baremetal
-    cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
     ipam/SVC-k8s-lcm: "presents"
 spec:
   cidr: {{ NETWORK_LCM_SUBNET }}
@@ -31,17 +31,17 @@ spec:
     - {{ server -}}
     {% endfor %}
   includeRanges:
-    - {{ NETWORK_LCM_STATIC_RANGE_CHILD }}
+    - {{ NETWORK_LCM_STATIC_RANGE_MANAGED }}
 
 ---
 apiVersion: ipam.mirantis.com/v1alpha1
 kind: L2Template
 metadata:
-  name: default-child
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+  name: default-managed
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
   labels:
     kaas.mirantis.com/provider: baremetal
-    cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
     ipam/DefaultForCluster: "1"
 spec:
   autoIfMappingPrio:
@@ -51,7 +51,7 @@ spec:
   - enp
   l3Layout:
     - scope: namespace
-      subnetName: child-lcm
+      subnetName: managed-lcm
       labelSelector:
         kaas.mirantis.com/provider: baremetal
         ipam/SVC-k8s-lcm: "presents"
@@ -63,14 +63,14 @@ spec:
     ethernets:
       {{ nic 0 }}:
         addresses:
-          - {{ ip "0:child-lcm" }}
+          - {{ ip "0:managed-lcm" }}
         dhcp4: false
         dhcp6: false
-        gateway4: {{ gateway_from_subnet "child-lcm" }}
+        gateway4: {{ gateway_from_subnet "managed-lcm" }}
         match:
           macaddress: {{ mac 0 }}
         nameservers:
-          addresses: {{ nameservers_from_subnet "child-lcm" }}
+          addresses: {{ nameservers_from_subnet "managed-lcm" }}
         set-name: mcc-lcm
       {{ nic 1 }}:
         dhcp4: false

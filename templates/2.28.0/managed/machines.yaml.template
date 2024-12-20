@@ -4,11 +4,11 @@ items:
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-control-0
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-control-0
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels: &cp_control_labels
       kaas.mirantis.com/provider: baremetal
-      cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+      cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
       cluster.sigs.k8s.io/control-plane: "true"
   spec:
     providerSpec:
@@ -17,7 +17,7 @@ items:
         kind: "BareMetalMachineProviderSpec"
         hostSelector:
           matchLabels:
-            baremetal: hw-child-control-0
+            baremetal: hw-managed-control-0
         nodeLabels:
         - key: openstack-control-plane
           value: enabled
@@ -29,8 +29,8 @@ items:
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-control-1
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-control-1
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels:
       <<: *cp_control_labels
   spec:
@@ -39,13 +39,13 @@ items:
         <<: *cp_control_values
         hostSelector:
           matchLabels:
-            baremetal: hw-child-control-1
+            baremetal: hw-managed-control-1
 
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-control-2
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-control-2
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels:
       <<: *cp_control_labels
   spec:
@@ -54,16 +54,16 @@ items:
         <<: *cp_control_values
         hostSelector:
           matchLabels:
-            baremetal: hw-child-control-2
+            baremetal: hw-managed-control-2
 
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-worker-0
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-worker-0
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels: &cp_worker_labels
       kaas.mirantis.com/provider: baremetal
-      cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
+      cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
   spec:
     providerSpec:
       value: &cp_worker_values
@@ -71,7 +71,7 @@ items:
         kind: "BareMetalMachineProviderSpec"
         hostSelector:
           matchLabels:
-            baremetal: hw-child-worker-0
+            baremetal: hw-managed-worker-0
         nodeLabels:
         - key: stacklight
           value: enabled
@@ -83,8 +83,8 @@ items:
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-worker-1
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-worker-1
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels:
       <<: *cp_worker_labels
   spec:
@@ -93,13 +93,13 @@ items:
         <<: *cp_worker_values
         hostSelector:
           matchLabels:
-            baremetal: hw-child-worker-1
+            baremetal: hw-managed-worker-1
 
 - apiVersion: "cluster.k8s.io/v1alpha1"
   kind: Machine
   metadata:
-    name: child-worker-2
-    namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    name: managed-worker-2
+    namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
     labels:
       <<: *cp_worker_labels
   spec:
@@ -108,4 +108,4 @@ items:
         <<: *cp_worker_values
         hostSelector:
           matchLabels:
-            baremetal: hw-child-worker-2
+            baremetal: hw-managed-worker-2

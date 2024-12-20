@@ -6,7 +6,7 @@ metadata:
 spec:
   internal_domain_name: cluster.local
   public_domain_name: {{ MCC_OPENSTACK_PUBLIC_DOMAIN }}
-  openstack_version: {{ MCC_CHILD_OPENSTACK_RELEASE }}
+  openstack_version: {{ MCC_MANAGED_OPENSTACK_RELEASE }}
   local_volume_storage_class: openstack-operator-bind-mounts
   persistent_volume_storage_class: kubernetes-ssd
   preset: compute

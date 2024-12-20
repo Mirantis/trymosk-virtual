@@ -4,15 +4,15 @@ kind: MetalLBConfig
 metadata:
   labels:
     kaas.mirantis.com/provider: baremetal
-    cluster.sigs.k8s.io/cluster-name: {{ MCC_CHILD_CLUSTER_NAME }}
-  name: {{ MCC_CHILD_CLUSTER_NAME }}-metallb
-  namespace: {{ MCC_CHILD_CLUSTER_NAMESPACE }}
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
+  name: {{ MCC_MANAGED_CLUSTER_NAME }}-metallb
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
 spec:
   ipAddressPools:
   - name: default
     spec:
       addresses:
-      - {{ NETWORK_LCM_METALLB_RANGE_CHILD }}
+      - {{ NETWORK_LCM_METALLB_RANGE_MANAGED }}
       autoAssign: true
       avoidBuggyIPs: false
   - name: openstack-lb
