@@ -1,54 +1,52 @@
-Virtualised MCC/MOSK for on-premise self-evaluation
-===================================================
+# Virtualised MCC/MOSK for on-premise self-evaluation
 
-Introduction
-============
-Project is developed for demo purposes of
-[Mirantis Container Cloud (MCC)](<https://docs.mirantis.com/container-cloud/latest/overview.html>)
-and [Mirantis OpenStack for Kubernetes (MOSK)](https://docs.mirantis.com/mosk/latest/overview.html)
-products on top of Vsphere infrastrcutre.
+This project is developed for demo purposes on
+[Mirantis Container Cloud (MCC)](https://docs.mirantis.com/container-cloud/latest/overview.html)
+and
+[Mirantis OpenStack for Kubernetes (MOSK)](https://docs.mirantis.com/mosk/latest/overview.html)
+products on top of the vSphere infrastructure.
 
-Pre-requesities
-===============
+## Requirements
 
-Project contains scripts for automated deployment of Mirantis Container Cloud
-(MCC) management cluster and Mirantis OpenStack for Kubernetes (MOSK) managed
-cluster:
-- creates subfolders in the provided `VSPHERE_FOLDER` for VMs placement
-- creates MCC seed VM with bootstrap cluster and minimal set of components:
-  - Min requirements: 8 CPUs, 16 GB RAM, 30 GiB disk
-- creates 3 VMs for management cluster:
-   - Min requirements: 8 CPUs, 32 GB RAM
-   - Single disk, 150 GiB
+The project contains scripts for automated deployment of an MCC management cluster
+MOSK managed cluster. The workflow of scripts is as follows:
+
+- Create subfolders in the provided `VSPHERE_FOLDER` for VM placement.
+- Create the MCC seed VM with the bootstrap cluster and minimal set of components
+  that require the following resources: 8 CPUs, 16 GB of RAM, 30 GiB disk.
+- Create 3 VMs for a management cluster that requires the following resources:
+   - 8 CPUs
+   - 32 GB of RAM
+   - Single 150 GiB disk
    - Attach to Life-Cycle Management (LCM) network
-- creates 6 VMs for managed cluster (3 control plane and 3 worker nodes):
-  - Min requirements: 8 CPUs, 24 GB RAM for control plane nodes;
-    8 CPUs, 16 GB RAM for worker nodes
-  - 2 disks: root partition (80 GiB) and disk for Ceph (40 GiB)
-  - 2 networks: LCM and Openstack
-- manages MCC and MOSK clusters deployment
-- saves deployment artifacts
-- provides access to the deployed environments
+- Create 6 VMs for a managed cluster containing 3 control plane and 3 worker nodes
+  that requires the following resources:
+  - 8 CPUs and 24 GB RAM for control plane nodes
+  - 8 CPUs and 16 GB RAM for worker nodes
+  - 2 disks: 80 GiB for root partition and 40 GiB for Ceph storage
+  - 2 networks: LCM and OpenStack
+- Manage MCC and MOSK cluster deployment.
+- Save deployment artifacts.
+- Provide access to the deployed environments.
 
-**_NOTE:_** VM parameters can be changed via related environment variables. For details, see:
+> Note: You can change VM parameters using the related environment variables. For details, run:
+>
+> ```./deploy.sh help```
 
-```./deploy.sh help```
+### Network configuration
 
-Network configuration
----------------------
-Demo environment setup requires two dedicated networks assigned for the
-deployment:
+Demo environment setup requires two dedicated networks assigned for the project deployment:
 
-* <b>LCM network</b>. Used for MCC cluster setup (including machines provisioning)
-  and also to access the MCC services. From MCC standpoint it is used as
-  public network to download MCC artifacts,
-  so it should have access to the internet or to the proxy (if used).
+- **LCM network**. Used for MCC cluster setup (including machines provisioning)
+  and for access to the MCC services. From MCC standpoint, this network is used as
+  public network to download MCC artifacts, so it must have access to the Internet
+  or to the proxy (if used).
 
-* <b>Openstack network</b>. Used to access Virtual machines created on top of
-  deployed Openstack cluster. Network should be routable in your infrastructure,
-  so you can access the Openstack VMs.
+- **Openstack network**. Used to access virtual machines created on top of
+  deployed OpenStack cluster. This network must be routable in your infrastructure
+  so that you can access OpenStack VMs.
 
-The user has to provide subnet range and gateway for each of those networks, for example:
+You must provide a subnet range and gateway for each of these networks, for example:
 
 ```
 VSPHERE_NETWORK_LCM="/<datacenter>/network/<lcm network name>"
@@ -62,74 +60,70 @@ NETWORK_OPENSTACK_GATEWAY=172.16.20.1
 NETWORK_OPENSTACK_RANGE=172.16.20.2-172.16.20.100
 ```
 
-**_NOTE:_** Vsphere networks must be configured with following network policies:
+> Note: vSphere networks must be configured with following network policies:
 
-* Promiscuous mode: Accept
-* MAC address changes: Accept
-* Forged transmits: Accept
+- Promiscuous mode: Accept
+- MAC address changes: Accept
+- Forged transmits: Accept
 
-Vsphere access
---------------
+### vSphere access
 
-The deployment script requires Vsphere user to access Vsphere API.
-That user manages full installation of MCC product onto your infrastructure
-and requires following privileges:
+The deployment script requires the vSphere user to access vSphere API.
+The user manages full MCC installation onto your infrastructure
+and requires the following privileges:
 
-* Datastore
-* Distributed switch
-* Folder
-* Global
-* Host local operations
-* Network
-* Resource
-* Scheduled task
-* Sessions
-* Storage views
-* Tasks
-* Virtual machine
+- Datastore
+- Distributed switch
+- Folder
+- Global
+- Host local operations
+- Network
+- Resource
+- Scheduled task
+- Sessions
+- Storage views
+- Tasks
+- Virtual machine
 
-Required utils
---------------
-The deloyment script requires following utils to be installed on machine
-where the script is going to be executed:
+## Prerequisites
 
-1. curl
-1. jq
-1. python3
-1. ssh, scp, ssh-keygen
-1. tar
-1. virtualenv
-1. govc (installed automatically if not present)
+The deloyment script requires following utils to be installed on the machine
+where the script will be executed:
 
-Seed node
----------
-Seed or bootstrap node is an initial node in MCC deployment which holds
-bootstrap cluster and MCC configuration. It is mandatory to prepare
-this seed node from the Ubuntu 22.04 image.
-You can download official Ubuntu 22.04 `vmdk` image
-from following [download page](https://cloud-images.ubuntu.com/releases/22.04/release/).
-You can upload the image directly to dedicated Vsphere datastore and provide path
-to it via `VSPHERE_VMDK_IMAGE_DATASTORE_PATH` variable or you can download
-the image locally and provide it via `VSPHERE_VMDK_IMAGE_LOCAL_PATH` variable.
+- `curl`
+- `jq`
+- `python3`
+- `ssh`, `scp`, `ssh-keygen`
+- `tar`
+- `virtualenv`
+- `govc` (installed automatically if not present)
 
-The alternative (and less-preferred) way is to use existing
-VM template of Ubuntu 22.04 with cloud-init installed of the latest version.
-The VM template can be provided via `VSPHERE_VM_TEMPLATE` variable.
-Please specify full path to template to unique identify it in your Vsphere cluster.
+### Seed node
 
-Get started
-===========
+The seed or bootstrap node is an initial node in the MCC deployment that contains the
+bootstrap cluster and MCC configuration. It is mandatory to prepare this seed node
+from the Ubuntu 22.04 image. You can download the official Ubuntu 22.04 `vmdk` image
+from the following [page](https://cloud-images.ubuntu.com/releases/22.04/release/).
 
-Environment variables
----------------------
+You can upload the image directly to the dedicated vSphere datastore and provide
+its path using the `VSPHERE_VMDK_IMAGE_DATASTORE_PATH` variable or you can download
+the image locally and provide it using the `VSPHERE_VMDK_IMAGE_LOCAL_PATH` variable.
 
-Run following command to get detailed information about the script
-and the available commands and parameters:
+Not recommended. As an alternative, you can use an existing VM template of Ubuntu 22.04
+with the latest version of `cloud-init` installed. You can provide the VM template
+using the `VSPHERE_VM_TEMPLATE` variable. Ensure to specify the full path to the template
+to uniquely identify it in your vSphere cluster.
+
+## Get started
+
+### Environment variables
+
+Run the following command to obtain detailed information about the script along with
+available commands and parameters:
 
 ```./deploy.sh help```
 
-Minimal mandatory parameters
-----------------------------
+#### Minimal mandatory parameters
 
 ```
 VSPHERE_SERVER="<fqdn or ip>"
@@ -156,8 +150,7 @@ NTP_SERVERS=us.pool.ntp.org,pool.ntp.org
 NAMESERVERS=8.8.8.8,8.8.4.4
 ```
 
-Proxy settings
---------------
+#### Variables for proxy settings
 
 ```
 HTTP_PROXY="<http proxy url>"
@@ -166,38 +159,36 @@ NO_PROXY="<comma-separated list of no proxy hosts>" # should include vsphere fqd
 PROXY_CA_CERTIFICATE_PATH="<path>/<to>/certificate.pem" # in case of MITM proxy
 ```
 
-Deploy MCC environment
-----------------------
+### Deploy the MCC environment
 
-MCC environment deployment stages:
+MCC environment deployment stages are as follows:
 
-* seed node setup
-* bootstrap cluster preparation
-* creating and provisioning for management and managed cluster machines
-* deployment of MCC management cluster
-  * host OS setup
-  * kubernetes setup
-  * MCC controllers deployment
-* deployment of MCC managed cluster:
-  * host OS setup
-  * kubernetes setup
-  * ceph deployment
-  * openstack deployment
+1. Set up the seed node
+1. Prepare the bootstrap cluster
+1. Create and provision management and managed cluster machines
+1. Deploy the MCC management cluster:
+   1. Set up the host operating system
+   1. Set up Kubernetes
+   1. Deploy MCC controllers
+1. Deploy the MCC managed cluster:
+   1. Set up the host operating system
+   1. Set up Kubernetes
+   1. Deploy Ceph
+   1. Deploy OpenStack
 
-To deploy whole env with one command:
+To deploy the whole environment using a single command:
 
 ```./deploy.sh all```
 
-Cleanup
-=======
+## Cleanup
 
-Deployment script has a function to cleanup the created Vsphere objects
-used by deployed environment. Cleanup removes:
+The deployment script can clean up the created vSphere objects used by
+the deployed environment. During cleanup, the following items are removed:
 
-1. all VMs in `seed`, `management` and `managed` folders inside provided
-   `VSPHERE_FOLDER`
-1. all disks attached to VMs including copy of vmdk image for seed node
+- All VMs in `seed`, `management`, and `managed` folders inside the provided
+  `VSPHERE_FOLDER`
+- All disks attached to VMs including the copy of the `vmdk` image for the seed node
 
-Run following command for cleanup:
+To clean up the created vSphere objects:
 
 ```./deploy.sh cleanup```
