@@ -37,12 +37,12 @@ MOSK managed cluster. The workflow of scripts is as follows:
 
 Demo environment setup requires two dedicated networks assigned for the project deployment:
 
-- **LCM network**. Used for MCC cluster setup (including machines provisioning)
+- **LCM network**: used for MCC cluster setup (including machines provisioning)
   and for access to the MCC services. From MCC standpoint, this network is used as
   public network to download MCC artifacts, so it must have access to the Internet
   or to the proxy (if used).
 
-- **Openstack network**. Used to access virtual machines created on top of
+- **Openstack network**: used to access virtual machines created on top of
   deployed OpenStack cluster. This network must be routable in your infrastructure
   so that you can access OpenStack VMs.
 
@@ -61,10 +61,10 @@ NETWORK_OPENSTACK_RANGE=172.16.20.2-172.16.20.100
 ```
 
 > Note: vSphere networks must be configured with following network policies:
-
-- Promiscuous mode: Accept
-- MAC address changes: Accept
-- Forged transmits: Accept
+>
+> - Promiscuous mode: Accept
+> - MAC address changes: Accept
+> - Forged transmits: Accept
 
 ### vSphere access
 
@@ -109,7 +109,7 @@ You can upload the image directly to the dedicated vSphere datastore and provide
 its path using the `VSPHERE_VMDK_IMAGE_DATASTORE_PATH` variable or you can download
 the image locally and provide it using the `VSPHERE_VMDK_IMAGE_LOCAL_PATH` variable.
 
-Not recommended. As an alternative, you can use an existing VM template of Ubuntu 22.04
+Not recommended: as an alternative, you can use an existing VM template of Ubuntu 22.04
 with the latest version of `cloud-init` installed. You can provide the VM template
 using the `VSPHERE_VM_TEMPLATE` variable. Ensure to specify the full path to the template
 to uniquely identify it in your vSphere cluster.
@@ -161,7 +161,11 @@ PROXY_CA_CERTIFICATE_PATH="<path>/<to>/certificate.pem" # in case of MITM proxy
 
 ### Deploy the MCC environment
 
-MCC environment deployment stages are as follows:
+To deploy the whole environment using a single command:
+
+```./deploy.sh all```
+
+The deployment stages of the MCC environment are as follows:
 
 1. Set up the seed node
 1. Prepare the bootstrap cluster
@@ -175,10 +179,6 @@ MCC environment deployment stages are as follows:
    1. Set up Kubernetes
    1. Deploy Ceph
    1. Deploy OpenStack
-
-To deploy the whole environment using a single command:
-
-```./deploy.sh all```
 
 ## Cleanup
 
