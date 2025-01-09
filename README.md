@@ -1,4 +1,4 @@
-# Virtualised MCC/MOSK for on-premise self-evaluation
+# TryMOSK for on-premise self-evaluation
 
 This project is developed for demo purposes on
 [Mirantis Container Cloud (MCC)](https://docs.mirantis.com/container-cloud/latest/overview.html)
