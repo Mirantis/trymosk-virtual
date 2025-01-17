@@ -1,0 +1,81 @@
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: master-0-bmc-credentials
+  namespace: default
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: master-1-bmc-credentials
+  namespace: default
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: master-2-bmc-credentials
+  namespace: default
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: master-0
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-master-0
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ mgmt_node_mac_address_0 }}"
+  bmc:
+    address: 127.0.0.1:6230
+    credentialsName: "master-0-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: master-1
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-master-1
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ mgmt_node_mac_address_1 }}"
+  bmc:
+    address: 127.0.0.1:6231
+    credentialsName: "master-1-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: master-2
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-master-2
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ mgmt_node_mac_address_2 }}"
+  bmc:
+    address: 127.0.0.1:6232
+    credentialsName: "master-2-bmc-credentials"

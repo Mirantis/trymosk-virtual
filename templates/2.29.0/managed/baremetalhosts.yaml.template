@@ -1,0 +1,168 @@
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-control-0-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-control-1-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-control-2-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-worker-0-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-worker-1-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostCredential
+metadata:
+  name: managed-worker-2-bmc-credentials
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+spec:
+  username: "admin"
+  password:
+    value: "password"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-control-0
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-control-0
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_control_mac_address_0 }}"
+  bmc:
+    address: 127.0.0.1:6240
+    credentialsName: "managed-control-0-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-control-1
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-control-1
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_control_mac_address_1 }}"
+  bmc:
+    address: 127.0.0.1:6241
+    credentialsName: "managed-control-1-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-control-2
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-control-2
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_control_mac_address_2 }}"
+  bmc:
+    address: 127.0.0.1:6242
+    credentialsName: "managed-control-2-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-worker-0
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-worker-0
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_worker_mac_address_0 }}"
+  bmc:
+    address: 127.0.0.1:6250
+    credentialsName: "managed-worker-0-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-worker-1
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-worker-1
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_worker_mac_address_1 }}"
+  bmc:
+    address: 127.0.0.1:6251
+    credentialsName: "managed-worker-1-bmc-credentials"
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: BareMetalHostInventory
+metadata:
+  name: managed-worker-2
+  namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    baremetal: hw-managed-worker-2
+spec:
+  bootMode: legacy
+  online: true
+  bootMACAddress: "{{ managed_worker_mac_address_2 }}"
+  bmc:
+    address: 127.0.0.1:6252
+    credentialsName: managed-worker-2-bmc-credentials
