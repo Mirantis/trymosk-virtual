@@ -48,7 +48,7 @@ spec:
   bootMACAddress: "{{ mgmt_node_mac_address_0 }}"
   bmc:
     address: 127.0.0.1:6230
-    credentialsName: "master-0-bmc-credentials"
+    bmhCredentialsName: "master-0-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -63,7 +63,7 @@ spec:
   bootMACAddress: "{{ mgmt_node_mac_address_1 }}"
   bmc:
     address: 127.0.0.1:6231
-    credentialsName: "master-1-bmc-credentials"
+    bmhCredentialsName: "master-1-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -78,4 +78,4 @@ spec:
   bootMACAddress: "{{ mgmt_node_mac_address_2 }}"
   bmc:
     address: 127.0.0.1:6232
-    credentialsName: "master-2-bmc-credentials"
+    bmhCredentialsName: "master-2-bmc-credentials"

@@ -85,7 +85,7 @@ spec:
   bootMACAddress: "{{ managed_control_mac_address_0 }}"
   bmc:
     address: 127.0.0.1:6240
-    credentialsName: "managed-control-0-bmc-credentials"
+    bmhCredentialsName: "managed-control-0-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -101,7 +101,7 @@ spec:
   bootMACAddress: "{{ managed_control_mac_address_1 }}"
   bmc:
     address: 127.0.0.1:6241
-    credentialsName: "managed-control-1-bmc-credentials"
+    bmhCredentialsName: "managed-control-1-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -117,7 +117,7 @@ spec:
   bootMACAddress: "{{ managed_control_mac_address_2 }}"
   bmc:
     address: 127.0.0.1:6242
-    credentialsName: "managed-control-2-bmc-credentials"
+    bmhCredentialsName: "managed-control-2-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -133,7 +133,7 @@ spec:
   bootMACAddress: "{{ managed_worker_mac_address_0 }}"
   bmc:
     address: 127.0.0.1:6250
-    credentialsName: "managed-worker-0-bmc-credentials"
+    bmhCredentialsName: "managed-worker-0-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -149,7 +149,7 @@ spec:
   bootMACAddress: "{{ managed_worker_mac_address_1 }}"
   bmc:
     address: 127.0.0.1:6251
-    credentialsName: "managed-worker-1-bmc-credentials"
+    bmhCredentialsName: "managed-worker-1-bmc-credentials"
 ---
 apiVersion: kaas.mirantis.com/v1alpha1
 kind: BareMetalHostInventory
@@ -165,4 +165,4 @@ spec:
   bootMACAddress: "{{ managed_worker_mac_address_2 }}"
   bmc:
     address: 127.0.0.1:6252
-    credentialsName: managed-worker-2-bmc-credentials
+    bmhCredentialsName: managed-worker-2-bmc-credentials

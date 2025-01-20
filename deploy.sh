@@ -987,7 +987,7 @@ function prepare_managed_cluster_templates {
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" -r "${managed_templates_local_dir}/certs" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}/certs"
     ${ssh_cmd} chmod +x "${managed_templates_remote_dir}/certs/create_secrets.sh"
 
-    cp -r "${managed_templates_local_dir}/hack" "${managed_templates_work_dir}/hack"
+    cp -Lr "${managed_templates_local_dir}/hack" "${managed_templates_work_dir}/hack"
 }
 
 function setup_seed {
