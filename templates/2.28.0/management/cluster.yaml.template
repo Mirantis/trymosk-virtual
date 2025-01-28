@@ -29,7 +29,7 @@ spec:
               persistentVolumeClaimSize: 30Gi
             highAvailabilityEnabled: true
             logging:
-              enabled: false
+              enabled: true
             prometheusServer:
               persistentVolumeClaimSize: 16Gi
       publicKeys:
