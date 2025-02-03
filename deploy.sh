@@ -929,7 +929,7 @@ function prepare_mgmt_cluster_templates {
     # Management cluster templates
     local f_b_name
     # shellcheck disable=SC2044
-    for file in $(find "${mgmt_templates_local_dir}" -type f  -name "*.template"); do
+    for file in $(find -L "${mgmt_templates_local_dir}" -type f  -name "*.template"); do
         f_b_name=$(basename "${file}")
         render_template < "${file}" > "${mgmt_templates_work_dir}/${f_b_name}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${mgmt_templates_work_dir}/${f_b_name}" \
@@ -978,14 +978,26 @@ function prepare_managed_cluster_templates {
 
     local f_b_name
     # shellcheck disable=SC2044
-    for file in $(find "${managed_templates_local_dir}" -maxdepth 1 -type f  -name "*.template"); do
+    for file in $(find -L "${managed_templates_local_dir}" -maxdepth 1 -type f  -name "*.template"); do
         f_b_name=$(basename "${file}")
-        render_template < "${file}" > "${managed_templates_work_dir}/${f_b_name%.tmpl}"
-        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${managed_templates_work_dir}/${f_b_name%.tmpl}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}"
+        render_template < "${file}" > "${managed_templates_work_dir}/${f_b_name}"
+        ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${managed_templates_work_dir}/${f_b_name}" \
+            "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}"
     done
 
-    ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" -r "${managed_templates_local_dir}/certs" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_remote_dir}/certs"
-    ${ssh_cmd} chmod +x "${managed_templates_remote_dir}/certs/create_secrets.sh"
+    local managed_templates_certs_local_dir managed_templates_certs_remote_dir
+    managed_templates_certs_local_dir="${managed_templates_local_dir}/certs"
+    managed_templates_certs_remote_dir="${managed_templates_remote_dir}/certs"
+
+    # shellcheck disable=SC2044
+    for file in $(find -L "${managed_templates_certs_local_dir}" -maxdepth 1 -type f  -name "*.template"); do
+        f_b_name=$(basename "${file}")
+        render_template < "${file}" > "${managed_templates_certs_local_dir}/${f_b_name%.template}"
+    done
+
+    ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" -r "${managed_templates_certs_local_dir}" \
+        "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${managed_templates_certs_remote_dir}"
+    ${ssh_cmd} chmod +x "${managed_templates_certs_remote_dir}/create_secrets.sh"
 
     cp -Lr "${managed_templates_local_dir}/hack" "${managed_templates_work_dir}/hack"
 }
