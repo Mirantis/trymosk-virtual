@@ -22,6 +22,11 @@ export PROXY_CA_CERTIFICATE_PATH="${PROXY_CA_CERTIFICATE_PATH:=}"
 # YQ variables
 : "${YQ_VERSION:="4.13.0"}"
 
+# EXPERIMENTAL. Enable airgapped deployment
+: "${AIRGAP_ENABLED:="false"}"
+: "${AIRGAPPED_WORKSPACE:="/opt/airgapped"}"
+: "${VSPHERE_API_HOST:=}"
+
 function _print_header {
     echo "########## Running stage: ${1} ##########"
 }
@@ -1022,6 +1027,11 @@ export MCC_CDN_BASE_URL="${MCC_CDN_BASE_URL}"
 export MCC_RELEASES_URL="${MCC_RELEASES_URL}"
 export SEED_NODE_USER="${SEED_NODE_USER}"
 
+export MCC_MANAGED_CLUSTER_RELEASE="${MCC_MANAGED_CLUSTER_RELEASE}"
+
+export AIRGAP_ENABLED="${AIRGAP_ENABLED}"
+export AIRGAPPED_WORKSPACE="${AIRGAPPED_WORKSPACE}"
+export AIRGAP_CDN_HOST="${NETWORK_LCM_SEED_IP}"
 export YQ_VERSION="${YQ_VERSION}"
 EOF
 
@@ -1065,17 +1075,35 @@ export KAAS_RELEASE_YAML="/home/${SEED_NODE_USER}/kaas-bootstrap/releases/kaas/$
 export CLUSTER_RELEASES_DIR="/home/${SEED_NODE_USER}/kaas-bootstrap/releases/cluster"
 export KAAS_CDN_REGION="${MCC_CDN_REGION}"
 
-export HTTPS_PROXY=${HTTPS_PROXY}
-export HTTP_PROXY="${HTTP_PROXY}"
-export NO_PROXY="${NO_PROXY}"
-export PROXY_CA_CERTIFICATE_PATH="${remote_proxy_cert_file}"
-
 export KAAS_BM_ENABLED="true"
 export KAAS_BM_PXE_BRIDGE=${SEED_NODE_PXE_BRIDGE}
 export KAAS_BM_PXE_IP=${NETWORK_PXE_BRIDGE_IP}
 export KAAS_BM_PXE_MASK=${network_pxe_mask}
 export KAAS_BOOTSTRAP_DEBUG="${MCC_DEMO_DEBUG}"
 EOF
+
+    if [ "${AIRGAP_ENABLED}" == "true" ]; then
+      cat << EOF >> "${bootstrap_env_file}"
+# airgap variables
+export MCC_CDN_DOCKER="${NETWORK_LCM_SEED_IP}"
+export MCC_CDN_BINARY="https://${NETWORK_LCM_SEED_IP}:8081"
+export MCC_CDN_DEBIAN="https://${NETWORK_LCM_SEED_IP}:8082"
+export MCC_CDN_MCR_REPO="https://${NETWORK_LCM_SEED_IP}:8083"
+
+# FIXME: Temporary use non-existent proxy to pass CA certificate
+export HTTPS_PROXY="http://127.0.0.1:3128"
+export HTTP_PROXY="http://127.0.0.1:3128"
+export NO_PROXY="${NETWORK_LCM_SEED_IP},${VSPHERE_API_HOST}"
+export PROXY_CA_CERTIFICATE_PATH="/home/${SEED_NODE_USER}/kaas-bootstrap/ca.crt"
+EOF
+    else
+      cat << EOF >> "${bootstrap_env_file}"
+export HTTPS_PROXY=${HTTPS_PROXY}
+export HTTP_PROXY="${HTTP_PROXY}"
+export NO_PROXY="${NO_PROXY}"
+export PROXY_CA_CERTIFICATE_PATH="${remote_proxy_cert_file}"
+EOF
+    fi
 
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${bootstrap_env_file}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:/home/${SEED_NODE_USER}/kaas-bootstrap/${bootstrap_env_file_name}"
 

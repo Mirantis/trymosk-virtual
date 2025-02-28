@@ -60,8 +60,28 @@ apt_cmd="sudo ${apt_cmd}"
 
 ${apt_cmd} update
 ${apt_cmd} install \
-    arping bridge-utils docker.io golang-cfssl ipmitool net-tools tar traceroute wget -y
+    arping bridge-utils docker-compose docker.io golang-cfssl ipmitool net-tools tar traceroute wget -y
 sudo usermod -aG docker "${SEED_NODE_USER}"
+
+prepare_mirror () {
+    local mcc_full_version=$1
+    local mcc_mgmt_cluster_release=$2
+
+    ./airgapped.sh inspect --unique
+    ./airgapped.sh demo --init --san-ip "${AIRGAP_CDN_HOST}"
+
+    pushd "${AIRGAPPED_WORKSPACE}/docker" || exit 1
+    docker-compose up -d
+    popd || exit 1
+    ${wget_cmd} -O ca.crt "http://${AIRGAP_CDN_HOST}:8080/demo-ca.crt"
+    sudo cp ca.crt /usr/local/share/ca-certificates/demo-ca.crt
+    sudo update-ca-certificates
+    sudo systemctl restart docker
+
+    ./airgapped.sh sync --kaas-release "${mcc_full_version}" --cluster-release "${mcc_mgmt_cluster_release}" --cluster-release "${MCC_MANAGED_CLUSTER_RELEASE}" --export-fs-layout --export-oci-layout
+    ./airgapped.sh push --kaas-release "${mcc_full_version}" --cluster-release "${mcc_mgmt_cluster_release}" --cluster-release "${MCC_MANAGED_CLUSTER_RELEASE}" --url-map 'mirantis.azurecr.io=127.0.0.1' --insecure-registry
+    ./airgapped.sh validate --kaas-release "${mcc_full_version}" --cluster-release "${mcc_mgmt_cluster_release}" --cluster-release "${MCC_MANAGED_CLUSTER_RELEASE}" --url-map "https://binary.mirantis.com=https://${AIRGAP_CDN_HOST}:8081" --url-map "https://mirror.mirantis.com=https://${AIRGAP_CDN_HOST}:8082" --url-map "https://repos.mirantis.com=https://${AIRGAP_CDN_HOST}:8083" --url-map "mirantis.azurecr.io=${AIRGAP_CDN_HOST}" --files --images
+}
 
 function get_kaas_release_yaml {
     kaas_release_yaml="$(find "${releases_dir}/kaas" -name "*.yaml" -type f)"
@@ -117,7 +137,7 @@ else
 
     pushd "${releases_dir}" || exit 1
 
-    # Donwload kaas release
+    # Download kaas release
     ${wget_cmd} "${MCC_RELEASES_URL}/releases/${kaas_release_yaml}" -O "${kaas_release_yaml}"
 
     # Download cluster releases
@@ -127,12 +147,20 @@ else
     done
 
     bootstrap_version="$(${yq_bin} eval '.spec.bootstrap.version' "${kaas_release_yaml}")"
+    mcc_mgmt_cluster_version="$(${yq_bin} eval '.spec.clusterRelease' "${kaas_release_yaml}")"
+    mcc_release_name="$(${yq_bin} eval '.metadata.name' "${kaas_release_yaml}")"
 
     popd || exit 1
 
     bootstrap_tarball_url="${MCC_CDN_BASE_URL}/core/bin/bootstrap-linux-${bootstrap_version}.tar.gz"
     ${wget_cmd} --show-progress "${bootstrap_tarball_url}"
     tar -xzf "$(basename "${bootstrap_tarball_url}")" -C kaas-bootstrap
+
+    if [ "${AIRGAP_ENABLED}" == "true" ]; then
+        pushd kaas-bootstrap || exit 1
+        prepare_mirror "${mcc_release_name}" "${mcc_mgmt_cluster_version}"
+        popd || exit 1
+    fi
 fi
 
 if [ -z "${kaas_release_yaml}" ]; then
