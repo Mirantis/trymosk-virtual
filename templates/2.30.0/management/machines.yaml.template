@@ -14,6 +14,8 @@ items:
       value: &cp_value
         apiVersion: "baremetal.k8s.io/v1alpha1"
         kind: "BareMetalMachineProviderSpec"
+        pause:
+          skip: true
         hostSelector:
           matchLabels:
             baremetal: hw-master-0
