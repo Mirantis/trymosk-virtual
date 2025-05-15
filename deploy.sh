@@ -29,8 +29,12 @@ export PROXY_CA_CERTIFICATE_PATH="${PROXY_CA_CERTIFICATE_PATH:=}"
 : "${RELEASE_ARTIFACTS_TAR_URL:=}"
 : "${VSPHERE_API_HOST:=}"
 
+function log() {
+    echo "[$(date +'%a %m %d %H:%M:%S,%N %Y')]" "$@"
+}
+
 function _print_header {
-    echo "########## Running stage: ${1} ##########"
+    log "########## Running stage: ${1} ##########"
 }
 
 function set_vars {
@@ -65,7 +69,7 @@ function set_vars {
     export NTP_SERVERS="${NTP_SERVERS:=}"
     export NAMESERVERS="${NAMESERVERS:=}"
     if [ -z "${NAMESERVERS}" ]; then
-        echo "Error: NAMESERVERS must be provided"
+        log "Error: NAMESERVERS must be provided"
         exit 1
     fi
 
@@ -151,7 +155,7 @@ function set_vars {
     : "${SKIP_SEED_NODE_SETUP:="false"}"
 
     if [[ -z "${NETWORK_LCM_SEED_IP}" ]] && [[ "${SKIP_SEED_NODE_CREATION}" =~ [Tt]rue ]]; then
-        echo "Error: NETWORK_LCM_SEED_IP must be set if SKIP_SEED_NODE_CREATION is set to true"
+        log "Error: NETWORK_LCM_SEED_IP must be set if SKIP_SEED_NODE_CREATION is set to true"
         exit 1
     fi
 
@@ -181,7 +185,7 @@ function _prepare_lcm_net_vars() {
 
     if [ -z "${NETWORK_LCM_SUBNET}" ] || \
         [ -z "${NETWORK_LCM_GATEWAY}" ]; then
-        echo "Error: some LCM network variables are not set, but mandatory:
+        log "Error: some LCM network variables are not set, but mandatory:
             NETWORK_LCM_SUBNET: ${NETWORK_LCM_SUBNET}
             NETWORK_LCM_GATEWAY: ${NETWORK_LCM_GATEWAY}
         "
@@ -202,7 +206,7 @@ function _prepare_lcm_net_vars() {
             [ -z "${NETWORK_LCM_METALLB_RANGE_MANAGED}" ] || \
             [ -z "${NETWORK_LCM_STATIC_RANGE_MANAGED}" ] || \
             [ -z "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}" ]; then
-            echo "Error: some LCM network variables are not set, but mandatory:
+            log "Error: some LCM network variables are not set, but mandatory:
                 NETWORK_LCM_SUBNET: ${NETWORK_LCM_SUBNET}
                 NETWORK_LCM_GATEWAY: ${NETWORK_LCM_GATEWAY}
                 NETWORK_LCM_MGMT_LB_HOST: ${NETWORK_LCM_MGMT_LB_HOST}
@@ -235,7 +239,7 @@ function _prepare_openstack_net_vars() {
     if [ -z "${NETWORK_OPENSTACK_SUBNET}" ] || \
         [ -z "${NETWORK_OPENSTACK_GATEWAY}" ] || \
         [ -z "${NETWORK_OPENSTACK_RANGE}" ]; then
-        echo "Error: some Openstack network variables are not set, but mandatory:
+        log "Error: some Openstack network variables are not set, but mandatory:
             NETWORK_OPENSTACK_SUBNET: ${NETWORK_OPENSTACK_SUBNET}
             NETWORK_OPENSTACK_GATEWAY: ${NETWORK_OPENSTACK_GATEWAY}
             NETWORK_OPENSTACK_RANGE: ${NETWORK_OPENSTACK_RANGE}
@@ -435,7 +439,7 @@ function verify_binaries {
     pip3 install -r "${script_dir}/bin/requirements.txt"
     deactivate
 
-    echo "Basic binaries have been verified"
+    log "Basic binaries have been verified"
 }
 
 function python_exec {
@@ -475,7 +479,7 @@ function collect_vsphere_vars {
         || [ -z "${VSPHERE_NETWORK_LCM}" ] \
         || [ -z "${VSPHERE_NETWORK_OPENSTACK}" ] \
         || [ -z "${VSPHERE_RESOURCE_POOL}" ]; then
-        echo "Error: some vsphere vars are not provided:"
+        log "Error: some vsphere vars are not provided:"
         echo "  VSPHERE_SERVER: ${VSPHERE_SERVER}"
         echo "  VSPHERE_USERNAME: ${VSPHERE_USERNAME}"
         echo "  VSPHERE_PASSWORD: ${VSPHERE_PASSWORD}"
@@ -489,7 +493,7 @@ function collect_vsphere_vars {
     if [ -z "${VSPHERE_VMDK_IMAGE_DATASTORE_PATH}" ] \
         && [ -z "${VSPHERE_VMDK_IMAGE_LOCAL_PATH}" ] \
         && [ -z "${VSPHERE_VM_TEMPLATE}" ]; then
-        echo "Error: Vsphere VM image has to be provided via one of the following variables:
+        log "Error: Vsphere VM image has to be provided via one of the following variables:
             VSPHERE_VMDK_IMAGE_DATASTORE_PATH
             VSPHERE_VMDK_IMAGE_LOCAL_PATH
             VSPHERE_VM_TEMPLATE"
@@ -498,16 +502,16 @@ function collect_vsphere_vars {
 
     if [ -z "${VSPHERE_DATASTORE}" ]; then
         if [ -z "${VSPHERE_DATASTORE_MGMT_CLUSTER}" ]; then
-            echo "VSPHERE_DATASTORE_MGMT_CLUSTER or VSPHERE_DATASTORE must be provided"
+            log "VSPHERE_DATASTORE_MGMT_CLUSTER or VSPHERE_DATASTORE must be provided"
             exit 1
         fi
         if [ -z "${VSPHERE_DATASTORE_MANAGED_CLUSTER}" ]; then
-            echo "VSPHERE_DATASTORE_MANAGED_CLUSTER or VSPHERE_DATASTORE must be provided"
+            log "VSPHERE_DATASTORE_MANAGED_CLUSTER or VSPHERE_DATASTORE must be provided"
             exit 1
         fi
     fi
 
-    echo "Vsphere variables have been verified"
+    log "Vsphere variables have been verified"
 
     # Ensure some vsphere objects are provided by full path, not just name
     if ! [[ "${VSPHERE_FOLDER}" =~ ^/.* ]]; then
@@ -559,10 +563,10 @@ function _curl {
 function ensure_govc_lib {
     if [[ "${SKIP_GOVC_DOWNLOAD}" =~ [Tt]rue ]]; then
         if ! [ -f "${GOVC_BIN}" ]; then
-            echo "Error: govc binary download is skipped, but GOVC_BIN is not provided"
+            log "Error: govc binary download is skipped, but GOVC_BIN is not provided"
             exit 1
         else
-            echo "GOVC is already in place: ${GOVC_BIN}"
+            log "GOVC is already in place: ${GOVC_BIN}"
             return
         fi
     fi
@@ -613,7 +617,7 @@ function verify_vsphere_objects {
         ${GOVC_BIN} datastore.ls -ds="${VSPHERE_DATASTORE_MGMT_CLUSTER}" "${VSPHERE_VMDK_IMAGE_DATASTORE_PATH}"
     elif [ -n "${VSPHERE_VMDK_IMAGE_LOCAL_PATH}" ]; then
         if ! [[ "${VSPHERE_VMDK_IMAGE_LOCAL_PATH}" =~ .*\.vmdk ]]; then
-            echo "Error: only VMDK image is supported"
+            log "Error: only VMDK image is supported"
             exit 1
         fi
 
@@ -622,20 +626,20 @@ function verify_vsphere_objects {
         ${GOVC_BIN} vm.info "${VSPHERE_VM_TEMPLATE}"
     fi
 
-    echo "Vsphere access has been verified"
+    log "Vsphere access has been verified"
 }
 
 function verify_mcc_vars {
     if [ "${MCC_CDN_REGION}" != "public" ] && [ -z "${MCC_RELEASES_URL}" ]; then
-        echo "Error: MCC_RELEASES_URL must be provided for non-public CDN region"
+        log "Error: MCC_RELEASES_URL must be provided for non-public CDN region"
         exit 1
     fi
     if [ "${MCC_CDN_REGION}" != "public" ] && [ -z "${MCC_VERSION}" ]; then
-        echo "Error: MCC_VERSION must be provided for non-public CDN region"
+        log "Error: MCC_VERSION must be provided for non-public CDN region"
         exit 1
     fi
     if [ -z "${MCC_LICENSE_FILE}" ] || ! [ -f "${MCC_LICENSE_FILE}" ]; then
-        echo "Error MCC_LICENSE_FILE is not found"
+        log "Error MCC_LICENSE_FILE is not found"
         exit 1
     fi
 }
@@ -673,12 +677,12 @@ function prepare_ssh_key {
     export SEED_NODE_PWD
     SEED_NODE_PWD=$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom | head -c 10; echo -n)
     echo "${SEED_NODE_PWD}" > "${seed_node_pwd_file}"
-    echo "Password for user ${SEED_NODE_USER} is stored in ${seed_node_pwd_file}"
+    log "Password for user ${SEED_NODE_USER} is stored in ${seed_node_pwd_file}"
 
     _set_tmpl_file_vars
     render_template < "${seed_userdata_file_tmpl}" > "${seed_userdata_file}"
 
-    echo "SSH key has been prepared"
+    log "SSH key has been prepared"
 }
 
 function _set_vsphere_vm_vars {
@@ -750,10 +754,10 @@ function create_seed_vm {
         set +e
         # Do not fail if file is not found
         if ${GOVC_BIN} datastore.ls -ds="${VSPHERE_DATASTORE_MGMT_CLUSTER}" "${import_file_name}"; then
-            echo "Skipping uploaded because ${import_file_name} is already in place"
+            log "Skipping uploaded because ${import_file_name} is already in place"
             do_upload="false"
         else
-            echo "${import_file_name} is not found on datastore. Doing upload"
+            log "${import_file_name} is not found on datastore. Doing upload"
         fi
         set -e
 
@@ -818,7 +822,7 @@ function create_seed_vm {
 
     ${GOVC_BIN} vm.power -on "${seed_full_name}"
 
-    echo "Seed node VM has been created: IP ${NETWORK_LCM_SEED_IP}"
+    log "Seed node VM has been created: IP ${NETWORK_LCM_SEED_IP}"
 }
 
 function create_mgmt_cluster_vms {
@@ -843,7 +847,7 @@ function create_mgmt_cluster_vms {
         ${GOVC_BIN} vm.change -vm "${mgmt_folder}/${machine_name}" -e disk.EnableUUID=TRUE
     done
 
-    echo "Vsphere management cluster VMs have been created"
+    log "Vsphere management cluster VMs have been created"
 }
 
 function create_managed_cluster_vms {
@@ -893,21 +897,22 @@ function create_managed_cluster_vms {
         ${GOVC_BIN} vm.network.add -net "${VSPHERE_NETWORK_OPENSTACK}" -vm "${managed_folder}/${machine_name}"
     done
 
-    echo "Vsphere managed cluster VMs have been created"
+    log "Vsphere managed cluster VMs have been created"
 }
 
 function wait_for_seed_ssh_available {
     local num_attepts=30
     while [ ${num_attepts} -ne 0 ]; do
-        echo "Trying ssh to seed node: ${NETWORK_LCM_SEED_IP}"
+        log "Trying ssh to seed node: ${NETWORK_LCM_SEED_IP}"
         res=$(${ssh_bin} -o ConnectTimeout=5 -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}" echo ok || true)
         if [ "${res}" == "ok" ]; then
+            log "ssh to seed node: ${NETWORK_LCM_SEED_IP} succeeded"
             return
         fi
 
         num_attepts=$((num_attepts-1))
         if [ ${num_attepts} -eq 0 ]; then
-            echo "Error: timeout waiting for ssh to be available"
+            log "Error: timeout waiting for ssh to be available"
             exit 1
         fi
         sleep 5
@@ -949,7 +954,7 @@ function prepare_managed_cluster_templates {
     # shellcheck source=/dev/null
     [ -f "${mcc_version_file}" ] && source "${mcc_version_file}"
     if [ -z "${MCC_VERSION}" ]; then
-        echo "Error: MCC_VERSION is not set. Unable to prepare management cluster templates"
+        log "Error: MCC_VERSION is not set. Unable to prepare management cluster templates"
         exit 1
     fi
 
@@ -1140,7 +1145,7 @@ function _set_templates_dir_vars {
     # shellcheck source=/dev/null
     [ -f "${mcc_version_file}" ] && source "${mcc_version_file}"
     if [ -z "${MCC_VERSION}" ]; then
-        echo "Error: MCC_VERSION is not set. Unable to set templates vars"
+        log "Error: MCC_VERSION is not set. Unable to set templates vars"
         exit 1
     fi
 
@@ -1158,7 +1163,7 @@ function deploy_mgmt_cluster {
     _set_bootstrap_vars
     _set_templates_dir_vars
 
-    echo "Creating management cluster objects"
+    log "Creating management cluster objects"
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/bootstrapregion.yaml.template"
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/serviceusers.yaml.template"
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/sshkey.yaml.template"
@@ -1167,7 +1172,7 @@ function deploy_mgmt_cluster {
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/ipam-objects.yaml.template"
 
     # wait for VBMC crd
-    echo "Waiting for vbmcs crd"
+    log "Waiting for vbmcs crd"
     _wait_for_object_status "crds" "vbmcs.metal3.io" "" ".status.conditions[].status" "True" 15 "plain"
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/vbmc.yaml.template"
 
@@ -1176,17 +1181,17 @@ function deploy_mgmt_cluster {
     ${remote_kubectl_cmd} apply -f "${mgmt_templates_remote_dir}/machines.yaml.template"
 
     # wait for ironic start, so provisioning artifacts are downloaded
-    echo "Waiting for Ironic deployment"
+    log "Waiting for Ironic deployment"
     _wait_for_object_status "deployment" "ironic" "kaas" ".status.readyReplicas" "1" "${IRONIC_DEPLOYMENT_TIMEOUT}" "plain"
 
     # wait for bmh
-    echo "Waiting for Baremetal hosts provisioning"
+    log "Waiting for Baremetal hosts provisioning"
     local bmh_names
     bmh_names=$(${remote_kubectl_cmd} get bmh -o jsonpath='{.items[*].metadata.name}')
     _wait_for_objects_statuses "bmh" "${bmh_names}" "" ".status.provisioning.state" "available,provisioned" "${BMH_READINESS_TIMEOUT}"
 
     # start deployment
-    echo "Starting MCC management cluster deployment"
+    log "Starting MCC management cluster deployment"
     ${remote_container_cloud_cmd} bootstrap approve all
 
     wait_for_mgmt_cluster
@@ -1227,7 +1232,7 @@ function deploy_managed_cluster {
     _set_mgmt_vars
     _set_templates_dir_vars
 
-    echo "Creating managed cluster objects"
+    log "Creating managed cluster objects"
     ${remote_kubectl_cmd} get namespace "${MCC_MANAGED_CLUSTER_NAMESPACE}" || \
         ${remote_kubectl_cmd} create namespace "${MCC_MANAGED_CLUSTER_NAMESPACE}"
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/sshkey.yaml.template"
@@ -1239,23 +1244,23 @@ function deploy_managed_cluster {
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/machines.yaml.template"
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/kaascephcluster.yaml.template"
 
-    echo "MCC managed cluster deployment has been started"
+    log "MCC managed cluster deployment has been started"
 
     # wait for bmh
-    echo "Waiting for Baremetal hosts provisioning"
+    log "Waiting for Baremetal hosts provisioning"
     local bmh_names
     bmh_names=$(${remote_kubectl_cmd} -n "${MCC_MANAGED_CLUSTER_NAMESPACE}" get bmh -o jsonpath='{.items[*].metadata.name}')
     _wait_for_objects_statuses "bmh" "${bmh_names}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.provisioning.state" "available,provisioned" "${BMH_READINESS_TIMEOUT}"
 
-    echo "Waiting for managed cluster deployment"
+    log "Waiting for managed cluster deployment"
     wait_for_managed_cluster
 
-    echo "Waiting for Ceph"
+    log "Waiting for Ceph"
     _wait_for_object_status kaascephcluster "ceph-${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
         "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
-    echo "Ceph cluster is ready"
+    log "Ceph cluster is ready"
 
-    echo "Managed cluster deployment has been finished successfully"
+    log "Managed cluster deployment has been finished successfully"
 }
 
 function deploy_openstack {
@@ -1267,11 +1272,11 @@ function deploy_openstack {
         ${kubectl_file_var}" "${managed_templates_remote_dir}/certs/create_secrets.sh"
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/osdpl.yaml.template"
 
-    echo "Waiting for Openstack"
+    log "Waiting for Openstack"
     _wait_for_object_status openstackdeploymentstatus osh-dev openstack ".status.osdpl.state" "APPLIED" "${OSDPL_APPLIED_TIMEOUT}" "plain"
     # Wait till all the Openstack components will be ready
     _wait_for_object_status openstackdeploymentstatus osh-dev openstack ".status.health.*.*.status" '^Ready( Ready)*$' "${OPENSTACK_READINESS_TIMEOUT}" "regex"
-    echo "Openstack Deployment has been completed"
+    log "Openstack Deployment has been completed"
 
     # Note: custom Openstack hostnames have to be resolved inside managed cluster,
     # otherwise the Openstack endpoints are not accessible.
@@ -1284,15 +1289,15 @@ function deploy_openstack {
     ${remote_kubectl_cmd} -n openstack-external get secrets openstack-identity-credentials \
         -o jsonpath='{.data.clouds\\.yaml}' | base64 -d > "${c_y_file}"
 
-    echo "Openstack deployment has been finished successfully"
-    echo "Please add following line to your /etc/hosts configuration to access Openstack Web UI"
-    echo "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS} \
+    log "Openstack deployment has been finished successfully"
+    log "Please add following line to your /etc/hosts configuration to access Openstack Web UI"
+    log  "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS} \
         keystone.${MCC_OPENSTACK_PUBLIC_DOMAIN} \
         horizon.${MCC_OPENSTACK_PUBLIC_DOMAIN} \
         nova.${MCC_OPENSTACK_PUBLIC_DOMAIN} \
         novncproxy.${MCC_OPENSTACK_PUBLIC_DOMAIN}"
-    echo "Openstack Web UI: https://horizon.${MCC_OPENSTACK_PUBLIC_DOMAIN}"
-    echo "Openstack credentials are saved into ${c_y_file} on local machine"
+    log "Openstack Web UI: https://horizon.${MCC_OPENSTACK_PUBLIC_DOMAIN}"
+    log "Openstack credentials are saved into ${c_y_file} on local machine"
 }
 
 function wait_for_mgmt_cluster {
@@ -1307,7 +1312,7 @@ function wait_for_mgmt_cluster {
         --cluster-name="${MCC_MGMT_CLUSTER_NAME}" --kubeconfig-output="${k_f_name_remote}"
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${k_f_name_remote}" "${k_f_name_local}"
 
-    echo "Management cluster kubeconfig is saved localy to ${k_f_name_local}"
+    log "Management cluster kubeconfig is saved localy to ${k_f_name_local}"
 }
 
 function wait_for_managed_cluster {
@@ -1321,12 +1326,12 @@ function wait_for_managed_cluster {
         -o jsonpath='{.data.admin\\.conf}' | base64 -d | tee "${k_f_name_local}"
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${k_f_name_local}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${k_f_name_remote}"
 
-    echo "Managed cluster kubeconfig is saved localy to ${k_f_name_local}"
+    log "Managed cluster kubeconfig is saved localy to ${k_f_name_local}"
 }
 
 function _wait_for_objects_statuses {
     if [ $# -ne 6 ]; then
-        echo "Error: _wait_for_objects_statuses requires exactly 6 arguments"
+        log "Error: _wait_for_objects_statuses requires exactly 6 arguments"
         exit 1
     fi
 
@@ -1348,21 +1353,21 @@ function _wait_for_objects_statuses {
             set +e
             status="$(${remote_kubectl_cmd} "${obj_namespace}" get "${obj_type}" "${obj_name}" -o jsonpath="{${obj_status_path}}")"
             set -e
-            echo "${obj_type} ${obj_name} status: ${status}. Expected status: ${obj_expected_statuses_pattern}"
+            log "${obj_type} ${obj_name} status: ${status}. Expected status: ${obj_expected_statuses_pattern}"
             if [[ ! "${status}" =~ ${obj_expected_statuses_pattern} ]]; then
                 all_ready=false
             fi
         done
 
         if [ "${all_ready}" == "true" ]; then
-            echo "All ${obj_type}s are ready"
+            log "All ${obj_type}s are ready"
             break
         fi
 
         num_attepts=$((num_attepts-1))
-        echo "Left attemtps: ${num_attepts}"
+        log "Left attemtps: ${num_attepts}"
         if [ ${num_attepts} -eq 0 ]; then
-            echo "Error: timeout waiting for ${obj_type}s to be available"
+            log "Error: timeout waiting for ${obj_type}s to be available"
             exit 1
         fi
         sleep 60
@@ -1371,7 +1376,7 @@ function _wait_for_objects_statuses {
 
 function _wait_for_object_status {
     if ! [ $# -eq 7 ]; then
-        echo "Error: _wait_for_object_status requires exactly 7 arguments"
+        log "Error: _wait_for_object_status requires exactly 7 arguments"
         exit 1
     fi
 
@@ -1390,7 +1395,7 @@ function _wait_for_object_status {
         set +e
         status="$(${remote_kubectl_cmd} "${obj_namespace}" get "${obj_type}" "${obj_name}" -o jsonpath="{${obj_status_path}}")"
         set -e
-        echo "${obj_type} ${obj_name} status: ${status}. Expected status: ${obj_expected_status}"
+        log "${obj_type} ${obj_name} status: ${status}. Expected status: ${obj_expected_status}"
         if [ "${compare_mode}" == 'regex' ]; then
             if [[ "${status}" =~ ${obj_expected_status} ]]; then
                 break
@@ -1402,21 +1407,21 @@ function _wait_for_object_status {
         fi
 
         num_attepts=$((num_attepts-1))
-        echo "Left attemtps: ${num_attepts}"
+        log "Left attemtps: ${num_attepts}"
         if [ "${num_attepts}" -eq 0 ]; then
-            echo "Error: timeout waiting for ${obj_type} ${obj_name} status"
+            log "Error: timeout waiting for ${obj_type} ${obj_name} status"
             exit 1
         fi
         sleep 60
     done
 
-    echo "${obj_type} ${obj_name} is ready"
+    log "${obj_type} ${obj_name} is ready"
 }
 
 function cleanup {
-    echo "Starting cleanup"
+    log "Starting cleanup"
     if ! [ -f "${GOVC_BIN}" ]; then
-        echo "Error: govc binary is not found. Cleanup is not possible"
+        log "Error: govc binary is not found. Cleanup is not possible"
         exit 1
     fi
     _set_vsphere_vm_vars
@@ -1441,12 +1446,12 @@ function cleanup {
 
     rm -rf "${work_dir}"
 
-    echo "Cleanup has been finished successfully"
+    log "Cleanup has been finished successfully"
 }
 
 function collect_logs() {
     if ! [ $# -eq 1 ]; then
-        echo "Error: ${FUNCNAME[0]} requires exactly 1 argument"
+        log "Error: ${FUNCNAME[0]} requires exactly 1 argument"
         exit 1
     fi
     local seed_node_ssh_key_path mgmt_kubeconfig_path
@@ -1455,6 +1460,7 @@ function collect_logs() {
     # Copy SSH_PRIVATE_KEY_PATH to seed node
     ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${seed_node_ssh_key_path}"
 
+    log "Started to collect logs for '$1' cluster"
     if [ "$1" == 'mgmt' ]; then
         _set_mgmt_vars
         local log_dir="/home/${SEED_NODE_USER}/mgmt_logs"
@@ -1472,9 +1478,10 @@ function collect_logs() {
         ${ssh_cmd} "chmod -R +r ${log_dir}; tar czf ${log_dir}.tgz ${log_dir}"
         ${scp_bin} -i "${SSH_PRIVATE_KEY_PATH}" "${SEED_NODE_USER}@${NETWORK_LCM_SEED_IP}:${log_dir}.tgz" "${work_dir}/"
     else
-        echo "${FUNCNAME[0]} takes only 'mgmt' or 'managed' values for its parameter"
+        log "${FUNCNAME[0]} takes only 'mgmt' or 'managed' values for its parameter"
         exit 1
     fi
+    log "Logs collection for '$1' cluster has been finished"
 }
 
 function cleanup_bootstrap_cluster {
@@ -1540,7 +1547,7 @@ function main {
             verify_binaries
             set_vars
             if [[ "${SKIP_VSPHERE_VMS_CREATION}" =~ [Tt]rue ]]; then
-                echo "Skipping create_mgmt_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
+                log "Skipping create_mgmt_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
                 exit 0
             fi
             ensure_govc_lib
@@ -1553,7 +1560,7 @@ function main {
             verify_binaries
             set_vars
             if [[ "${SKIP_VSPHERE_VMS_CREATION}" =~ [Tt]rue ]]; then
-                echo "Skipping create_managed_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
+                log "Skipping create_managed_cluster_vms action: SKIP_VSPHERE_VMS_CREATION=True"
                 exit 0
             fi
             ensure_govc_lib
@@ -1654,11 +1661,11 @@ function main {
 
             deploy_openstack
 
-            echo "MCC installation has been finished successfully"
+            log "MCC installation has been finished successfully"
             exit 0
             ;;
         *)
-            echo "Wrong option is passed"
+            log "Wrong option is passed"
             usage
             exit 1
             ;;
