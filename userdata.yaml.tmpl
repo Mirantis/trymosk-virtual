@@ -16,6 +16,9 @@ chpasswd:
   - name: {{ SEED_NODE_USER }}
     password: {{ SEED_NODE_PWD }}
     type: text
+runcmd:
+  - echo 'br_netfilter' > /etc/modules-load.d/br_netfilter.conf
+  - modprobe br_netfilter
 {% if NTP_SERVERS is defined and NTP_SERVERS != '' %}
 ntp:
   enabled: true
