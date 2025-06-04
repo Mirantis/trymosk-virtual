@@ -15,8 +15,8 @@ items:
       value: &cp_control_values
         apiVersion: "baremetal.k8s.io/v1alpha1"
         kind: "BareMetalMachineProviderSpec"
-        pause:
-          skip: true
+        day1Provisioning: auto
+        day1Deployment: auto
         hostSelector:
           matchLabels:
             baremetal: hw-managed-control-0
@@ -71,8 +71,8 @@ items:
       value: &cp_worker_values
         apiVersion: "baremetal.k8s.io/v1alpha1"
         kind: "BareMetalMachineProviderSpec"
-        pause:
-          skip: true
+        day1Provisioning: auto
+        day1Deployment: auto
         hostSelector:
           matchLabels:
             baremetal: hw-managed-worker-0
