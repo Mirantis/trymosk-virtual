@@ -94,6 +94,8 @@ spec:
       role: other
     rookConfig:
       osd_pool_default_size: "2"
+      bluestore_slow_ops_warn_lifetime: "100"
+      bluestore_slow_ops_warn_threshold: "50"
   k8sCluster:
     name: {{ MCC_MANAGED_CLUSTER_NAME }}
     namespace: {{ MCC_MANAGED_CLUSTER_NAMESPACE }}
