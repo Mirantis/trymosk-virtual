@@ -23,6 +23,8 @@ metadata:
     kaas.mirantis.com/provider: baremetal
     cluster.sigs.k8s.io/cluster-name: {{ MCC_MANAGED_CLUSTER_NAME }}
     ipam/SVC-k8s-lcm: "presents"
+    ipam/SVC-ceph-cluster: "1"
+    ipam/SVC-ceph-public: "1"
 spec:
   cidr: {{ NETWORK_LCM_SUBNET }}
   gateway: {{ NETWORK_LCM_GATEWAY }}

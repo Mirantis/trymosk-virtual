@@ -1242,7 +1242,9 @@ function deploy_managed_cluster {
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/baremetalhostprofiles.yaml.template"
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/baremetalhosts.yaml.template"
     ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/machines.yaml.template"
-    ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/kaascephcluster.yaml.template"
+    if [[ "${MCC_VERSION}" =~ 2\.29\..* || "${MCC_VERSION}" =~ 2\.30\..* ]]; then
+        ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/kaascephcluster.yaml.template"
+    fi
 
     log "MCC managed cluster deployment has been started"
 
@@ -1252,13 +1254,29 @@ function deploy_managed_cluster {
     bmh_names=$(${remote_kubectl_cmd} -n "${MCC_MANAGED_CLUSTER_NAMESPACE}" get bmh -o jsonpath='{.items[*].metadata.name}')
     _wait_for_objects_statuses "bmh" "${bmh_names}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.provisioning.state" "available,provisioned" "${BMH_READINESS_TIMEOUT}"
 
-    log "Waiting for managed cluster deployment"
-    wait_for_managed_cluster
+    if [[ "${MCC_VERSION}" =~ 2\.29\..* || "${MCC_VERSION}" =~ 2\.30\..* ]]; then
+        log "Waiting for managed cluster deployment"
+        wait_for_managed_cluster "final"
 
-    log "Waiting for Ceph"
-    _wait_for_object_status kaascephcluster "ceph-${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
-        "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
-    log "Ceph cluster is ready"
+        log "Waiting for Ceph"
+        _wait_for_object_status kaascephcluster "ceph-${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
+            "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
+        log "Ceph cluster is ready"
+    else
+        log "Waiting for managed cluster deployment - intermediate state"
+        wait_for_managed_cluster "intermediate"
+
+        _set_managed_vars
+        ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/miraceph.yaml.template"
+        log "Waiting for MiraCeph"
+        _wait_for_object_status miraceph "ceph-${MCC_MANAGED_CLUSTER_NAME}" "ceph-lcm-mirantis" ".status.phase" \
+            "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
+        log "MiraCeph cluster is ready"
+        _set_mgmt_vars
+
+        log "Waiting for managed cluster deployment - final readiness state"
+        wait_for_managed_cluster "final"
+    fi
 
     log "Managed cluster deployment has been finished successfully"
 }
@@ -1316,9 +1334,20 @@ function wait_for_mgmt_cluster {
 }
 
 function wait_for_managed_cluster {
+    local state="${1}"
     _set_mgmt_vars
-    _wait_for_object_status cluster "${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.providerStatus.ready" "true" \
-        "${MANAGED_CLUSTER_READINESS_TIMEOUT}" "plain"
+    if [[ "${state}" = "final" ]]; then
+        _wait_for_object_status cluster "${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" \
+            ".status.providerStatus.ready" "true" \
+            "${MANAGED_CLUSTER_READINESS_TIMEOUT}" "plain"
+    elif [[ "${state}" = "intermediate" ]]; then
+        _wait_for_object_status cluster "${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" \
+            ".status.providerStatus.conditions[?\(@.type==\\\"Helm\\\"\)].ready" "true" \
+            "${MANAGED_CLUSTER_READINESS_TIMEOUT}" "plain"
+    else
+        log "Unknown state of cluster requested"
+        exit 1
+    fi
 
     local k_f_name_local="${work_dir}/kubeconfig-${MCC_MANAGED_CLUSTER_NAME}"
     local k_f_name_remote="/home/${SEED_NODE_USER}/kaas-bootstrap/kubeconfig-${MCC_MANAGED_CLUSTER_NAME}"
