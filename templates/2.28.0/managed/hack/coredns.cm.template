@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: coredns
-  namespace: kube-system
-data:
-  Corefile: |
-{{ coredns_cm_content }}
