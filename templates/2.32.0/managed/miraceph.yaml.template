@@ -1,0 +1,123 @@
+apiVersion: lcm.mirantis.com/v1alpha1
+kind: MiraCeph
+metadata:
+  name: ceph-{{ MCC_MANAGED_CLUSTER_NAME }}
+  namespace: ceph-lcm-mirantis
+spec:
+  dashboard: false
+  rookNamespace: rook-ceph
+  hyperconverge:
+    tolerations:
+      mds:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      mgr:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      mon:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      osd:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      rgw:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+  network:
+    clusterNet: {{ NETWORK_LCM_SUBNET }}
+    publicNet: {{ NETWORK_LCM_SUBNET }}
+  nodes:
+    - name: managed-control-0
+      roles:
+      - mgr
+      - mon
+      devices:
+      - config:
+          deviceClass: ssd
+        name: sdb
+    - name: managed-control-1
+      roles:
+      - mon
+      - mgr
+      devices:
+      - config:
+          deviceClass: ssd
+        name: sdb
+    - name: managed-control-2
+      roles:
+      - mgr
+      - mon
+      devices:
+      - config:
+          deviceClass: ssd
+        name: sdb
+  objectStorage:
+    rgw:
+      dataPool:
+        deviceClass: ssd
+        replicated:
+          size: 2
+        failureDomain: host
+      gateway:
+        allNodes: false
+        instances: 2
+        port: 80
+        securePort: 8443
+      metadataPool:
+        deviceClass: ssd
+        failureDomain: host
+        replicated:
+          size: 2
+      name: openstack-store
+      preservePoolsOnDelete: false
+  pools:
+  - default: true
+    deviceClass: ssd
+    name: kubernetes
+    replicated:
+      size: 2
+    role: kubernetes
+  - default: false
+    deviceClass: ssd
+    name: volumes
+    replicated:
+      size: 2
+    role: volumes
+  - default: false
+    deviceClass: ssd
+    name: vms
+    replicated:
+      size: 2
+    role: vms
+  - default: false
+    deviceClass: ssd
+    name: backup
+    replicated:
+      size: 2
+    role: backup
+  - default: false
+    deviceClass: ssd
+    name: images
+    replicated:
+      size: 2
+    role: images
+  - default: false
+    deviceClass: ssd
+    name: other
+    replicated:
+      size: 2
+    role: other
+  rookConfig:
+    osd_pool_default_size: "2"
+    bluestore_slow_ops_warn_lifetime: "100"
+    bluestore_slow_ops_warn_threshold: "50"

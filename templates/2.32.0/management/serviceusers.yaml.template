@@ -1,0 +1,10 @@
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: ServiceUserList
+items:
+- apiVersion: kaas.mirantis.com/v1alpha1
+  kind: ServiceUser
+  metadata:
+    name: serviceuser
+  spec:
+    password:
+      value: {{ MCC_SERVICEUSER_PASSWORD }}

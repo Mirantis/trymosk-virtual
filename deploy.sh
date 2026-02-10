@@ -142,7 +142,7 @@ function set_vars {
     export MCC_MANAGED_CLUSTER_NAME="${MCC_MANAGED_CLUSTER_NAME:="mcc-managed"}"
     export MCC_MANAGED_CLUSTER_NAMESPACE="${MCC_MANAGED_CLUSTER_NAMESPACE:="managed-ns"}"
     export MCC_MANAGED_CLUSTER_RELEASE="${MCC_MANAGED_CLUSTER_RELEASE:=""}"
-    export MCC_MANAGED_OPENSTACK_RELEASE="${MCC_MANAGED_OPENSTACK_RELEASE:="antelope"}"
+    export MCC_MANAGED_OPENSTACK_RELEASE="${MCC_MANAGED_OPENSTACK_RELEASE:="caracal"}"
     export MCC_OPENSTACK_PUBLIC_DOMAIN="${MCC_OPENSTACK_PUBLIC_DOMAIN:="it.just.works"}"
 
     # ==================================================================================
