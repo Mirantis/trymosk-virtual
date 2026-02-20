@@ -1262,7 +1262,7 @@ function deploy_managed_cluster {
         _wait_for_object_status kaascephcluster "ceph-${MCC_MANAGED_CLUSTER_NAME}" "${MCC_MANAGED_CLUSTER_NAMESPACE}" ".status.shortClusterInfo.state" \
             "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
         log "Ceph cluster is ready"
-    else
+    elif [[ "${MCC_VERSION}" =~ 2\.31\..* ]]; then
         log "Waiting for managed cluster deployment - intermediate state"
         wait_for_managed_cluster "intermediate"
 
@@ -1272,6 +1272,20 @@ function deploy_managed_cluster {
         _wait_for_object_status miraceph "ceph-${MCC_MANAGED_CLUSTER_NAME}" "ceph-lcm-mirantis" ".status.phase" \
             "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
         log "MiraCeph cluster is ready"
+        _set_mgmt_vars
+
+        log "Waiting for managed cluster deployment - final readiness state"
+        wait_for_managed_cluster "final"
+    else
+        log "Waiting for managed cluster deployment - intermediate state"
+        wait_for_managed_cluster "intermediate"
+
+        _set_managed_vars
+        ${remote_kubectl_cmd} apply -f "${managed_templates_remote_dir}/cephdeployment.yaml.template"
+        log "Waiting for CephDeployment"
+        _wait_for_object_status cephdeployment "ceph-${MCC_MANAGED_CLUSTER_NAME}" "ceph-lcm-mirantis" ".status.phase" \
+            "Ready" "${MANAGED_CEPH_CLUSTER_TIMEOUT}" "plain"
+        log "CephDeployment is ready"
         _set_mgmt_vars
 
         log "Waiting for managed cluster deployment - final readiness state"
