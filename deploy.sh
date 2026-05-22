@@ -39,6 +39,9 @@ function _print_header {
 
 function set_vars {
     _print_header "${FUNCNAME[0]}"
+
+    : "${MCC_VERSION:=}"
+
     # Vsphere variables
     collect_vsphere_vars
 
@@ -159,8 +162,6 @@ function set_vars {
         exit 1
     fi
 
-    # MCC_VERSION should be used for internal deployments or for standalone stages run only
-    : "${MCC_VERSION:=}"
     : "${APPLY_COREDNS_HACK:="true"}"
     : "${VM_NAME_PREFIX:=""}"
 }
@@ -169,7 +170,8 @@ function _prepare_pxe_net_vars() {
     local out_file="${work_dir}/pxe-net.out"
     export NETWORK_PXE_SUBNET="${NETWORK_PXE_SUBNET:="10.0.0.0/26"}"
     export NETWORK_PXE_RANGE="${NETWORK_PXE_RANGE:="10.0.0.2-10.0.0.60"}"
-    python_exec "${script_dir}/bin/prepare_network.py" pxe "${NETWORK_PXE_RANGE}" "${out_file}"
+
+    python_exec "${script_dir}/bin/prepare_network.py" pxe "${NETWORK_PXE_RANGE}" "${out_file}" "false"
     # shellcheck source=/dev/null
     chmod +x "${out_file}" && source "${out_file}"
     export NETWORK_PXE_BRIDGE_IP \
@@ -191,9 +193,14 @@ function _prepare_lcm_net_vars() {
         "
     fi
 
+    local keycloak_ip_required="false"
+    if [[ "${MCC_VERSION}" =~ 2\.3[2-9]\.[0-9]+ ]]; then
+        keycloak_ip_required="true"
+    fi
+
     export NETWORK_LCM_RANGE="${NETWORK_LCM_RANGE:=}"
     if [ -n "${NETWORK_LCM_RANGE}" ]; then
-        python_exec "${script_dir}/bin/prepare_network.py" lcm "${NETWORK_LCM_RANGE}" "${out_file}"
+        python_exec "${script_dir}/bin/prepare_network.py" lcm "${NETWORK_LCM_RANGE}" "${out_file}" "${keycloak_ip_required}"
         # shellcheck source=/dev/null
         chmod +x "${out_file}" && source "${out_file}"
     else
@@ -205,7 +212,8 @@ function _prepare_lcm_net_vars() {
             [ -z "${NETWORK_LCM_STATIC_RANGE_MGMT}" ] || \
             [ -z "${NETWORK_LCM_METALLB_RANGE_MANAGED}" ] || \
             [ -z "${NETWORK_LCM_STATIC_RANGE_MANAGED}" ] || \
-            [ -z "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}" ]; then
+            [ -z "${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}" ] || \
+            { [ "${keycloak_ip_required}" == "true" ] && [ -z "${NETWORK_LCM_IAM_KEYCLOAK_IP}" ] ; } ; then
             log "Error: some LCM network variables are not set, but mandatory:
                 NETWORK_LCM_SUBNET: ${NETWORK_LCM_SUBNET}
                 NETWORK_LCM_GATEWAY: ${NETWORK_LCM_GATEWAY}
@@ -216,6 +224,7 @@ function _prepare_lcm_net_vars() {
                 NETWORK_LCM_METALLB_RANGE_MANAGED: ${NETWORK_LCM_METALLB_RANGE_MANAGED}
                 NETWORK_LCM_STATIC_RANGE_MANAGED: ${NETWORK_LCM_STATIC_RANGE_MANAGED}
                 NETWORK_LCM_METALLB_OPENSTACK_ADDRESS: ${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS}
+                NETWORK_LCM_IAM_KEYCLOAK_IP: ${NETWORK_LCM_IAM_KEYCLOAK_IP}
             "
             exit 1
         fi
@@ -229,6 +238,7 @@ function _prepare_lcm_net_vars() {
     export NETWORK_LCM_METALLB_RANGE_MANAGED="${NETWORK_LCM_METALLB_RANGE_MANAGED:=}"
     export NETWORK_LCM_STATIC_RANGE_MANAGED="${NETWORK_LCM_STATIC_RANGE_MANAGED:=}"
     export NETWORK_LCM_METALLB_OPENSTACK_ADDRESS="${NETWORK_LCM_METALLB_OPENSTACK_ADDRESS:=}"
+    export NETWORK_LCM_IAM_KEYCLOAK_IP="${NETWORK_LCM_IAM_KEYCLOAK_IP:=}"
 }
 
 function _prepare_openstack_net_vars() {
@@ -336,12 +346,13 @@ function usage() {
     echo ""
     echo "      NETWORK_LCM_SEED_IP                     Seed node address"
     echo "      NETWORK_LCM_MGMT_LB_HOST                Load balancer address for MCC management cluster"
-    echo "      NETWORK_LCM_MANAGED_LB_HOST               Load balancer address for MCC managed cluster"
+    echo "      NETWORK_LCM_MANAGED_LB_HOST             Load balancer address for MCC managed cluster"
     echo "      NETWORK_LCM_METALLB_RANGE_MGMT          Metallb address range for MCC management cluster"
     echo "      NETWORK_LCM_STATIC_RANGE_MGMT           Address range for MCC management cluster nodes"
-    echo "      NETWORK_LCM_METALLB_RANGE_MANAGED         Metallb address range for MCC managed cluster"
-    echo "      NETWORK_LCM_STATIC_RANGE_MANAGED          Address range for MCC managed cluster nodes"
+    echo "      NETWORK_LCM_METALLB_RANGE_MANAGED       Metallb address range for MCC managed cluster"
+    echo "      NETWORK_LCM_STATIC_RANGE_MANAGED        Address range for MCC managed cluster nodes"
     echo "      NETWORK_LCM_METALLB_OPENSTACK_ADDRESS   Adress for Openstack services"
+    echo "      NETWORK_LCM_IAM_KEYCLOAK_IP             Address for Keycloak service on MCC management cluster"
     echo ""
     echo "    Openstack network:"
     echo "      NETWORK_OPENSTACK_SUBNET                CIDR of Openstack network. Example 172.16.20.0/24"

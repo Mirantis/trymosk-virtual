@@ -3,12 +3,13 @@ import sys
 
 print(sys.argv)
 
-if len(sys.argv) != 4:
-    raise Exception("prepare_network.py requires exactly 3 arguments")
+if len(sys.argv) != 5:
+    raise Exception("prepare_network.py requires exactly 4 arguments")
 
 net_type = sys.argv[1]
 net_range = sys.argv[2]
 out_file = sys.argv[3]
+keycloak_ip_required = str(sys.argv[4]).lower() == 'true'
 
 net_required_ranges = {
     'pxe': {
@@ -28,6 +29,10 @@ net_required_ranges = {
         'NETWORK_LCM_METALLB_OPENSTACK_ADDRESS': 1
     }
 }
+
+if keycloak_ip_required:
+    net_required_ranges['lcm']['NETWORK_LCM_IAM_KEYCLOAK_IP'] = 1
+    net_required_ranges['lcm']['NETWORK_LCM_METALLB_RANGE_MGMT'] -= 1
 
 if not net_required_ranges.get(net_type, False):
     raise Exception(f"unknown network type is provided: {net_type}")
