@@ -1,0 +1,15 @@
+{
+    "CN": "*.{{ MCC_OPENSTACK_PUBLIC_DOMAIN }}",
+    "hosts":     [
+        "*.{{ MCC_OPENSTACK_PUBLIC_DOMAIN }}"
+    ],
+    "key":     {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [    {
+        "C": "US",
+        "L": "CA",
+        "ST": "San Francisco"
+    }]
+}

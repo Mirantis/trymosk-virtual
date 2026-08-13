@@ -1,0 +1,59 @@
+apiVersion: lcm.mirantis.com/v1alpha1
+kind: OpenStackDeployment
+metadata:
+  name: osh-dev
+  namespace: openstack
+spec:
+  internal_domain_name: cluster.local
+  public_domain_name: {{ MCC_OPENSTACK_PUBLIC_DOMAIN }}
+  openstack_version: {{ MCC_MANAGED_OPENSTACK_RELEASE }}
+  local_volume_storage_class: openstack-operator-bind-mounts
+  persistent_volume_storage_class: kubernetes-ssd
+  preset: compute
+  size: tiny
+  features:
+    ssl:
+      public_endpoints:
+        api_cert:
+          value_from:
+            secret_key_ref:
+              key: api_cert
+              name: osh-dev-hidden
+        api_key:
+          value_from:
+            secret_key_ref:
+              key: api_key
+              name: osh-dev-hidden
+        ca_cert:
+          value_from:
+            secret_key_ref:
+              key: ca_cert
+              name: osh-dev-hidden
+    nova:
+      live_migration_interface: mcc-lcm
+      images:
+        backend: ceph
+        encryption:
+          enabled: false
+    neutron:
+      dns_servers:
+      {%- for server in NAMESERVERS.split(',') %}
+      - {{ server -}}
+      {% endfor %}
+      external_networks:
+      - physnet: physnet1
+        interface: mcc-openstack
+        bridge: br-ex
+        network_types:
+          - flat
+        vlan_ranges: null
+        mtu: null
+      floating_network:
+        physnet: physnet1
+        enabled: True
+        subnet:
+          gateway: "{{ NETWORK_OPENSTACK_GATEWAY }}"
+          pool_start: "{{ network_openstack_range_start }}"
+          pool_end: "{{ network_openstack_range_end }}"
+          range: "{{ NETWORK_OPENSTACK_SUBNET }}"
+      tunnel_interface: mcc-lcm

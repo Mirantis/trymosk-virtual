@@ -1,0 +1,60 @@
+---
+apiVersion: kaas.mirantis.com/v1alpha1
+kind: MetalLBConfig
+metadata:
+  labels:
+    kaas.mirantis.com/provider: baremetal
+    cluster.sigs.k8s.io/cluster-name: {{ MCC_MGMT_CLUSTER_NAME }}
+  name: {{ MCC_MGMT_CLUSTER_NAME }}-metallb
+  namespace: default
+spec:
+  ipAddressPools:
+  - name: default
+    spec:
+      addresses:
+      - {{ NETWORK_LCM_METALLB_RANGE_MGMT }}
+      autoAssign: true
+      avoidBuggyIPs: false
+  - name: services-pxe
+    spec:
+      addresses:
+      - {{ NETWORK_PXE_METALLB_RANGE }}
+      autoAssign: false
+      avoidBuggyIPs: false
+  {%- if NETWORK_LCM_IAM_KEYCLOAK_IP %}
+  - name: iam-keycloak
+    spec:
+      addresses:
+      - {{ NETWORK_LCM_IAM_KEYCLOAK_IP }}/32
+      autoAssign: true
+      avoidBuggyIPs: false
+      serviceAllocation:
+        priority: 10
+        namespaces:
+        - "kaas"
+        serviceSelectors:
+        - matchLabels:
+            app.kubernetes.io/name: "keycloak"
+            app.kubernetes.io/component: "http"
+  {%- endif %}
+  l2Advertisements:
+  - name: default
+    spec:
+      interfaces:
+      - mcc-lcm
+      ipAddressPools:
+      - default
+  - name: pxe
+    spec:
+      interfaces:
+      - mcc-lcm
+      ipAddressPools:
+      - services-pxe
+  {%- if NETWORK_LCM_IAM_KEYCLOAK_IP %}
+  - name: keycloak
+    spec:
+      interfaces:
+      - mcc-lcm
+      ipAddressPools:
+      - iam-keycloak
+  {%- endif %}

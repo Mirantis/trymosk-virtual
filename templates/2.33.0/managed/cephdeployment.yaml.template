@@ -1,0 +1,136 @@
+apiVersion: lcm.mirantis.com/v1alpha1
+kind: CephDeployment
+metadata:
+  name: ceph-mcc-managed
+  namespace: ceph-lcm-mirantis
+spec:
+  dashboard: false
+  network:
+    clusterNet: {{ NETWORK_LCM_SUBNET }}
+    publicNet: {{ NETWORK_LCM_SUBNET }}
+  hyperconverge:
+    tolerations:
+      mds:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      mgr:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      mon:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      osd:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+      rgw:
+        rules:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+  nodes:
+  - devices:
+    - config:
+        deviceClass: ssd
+      name: sdb
+    name: managed-control-0
+    resources: {}
+    roles:
+    - mgr
+    - mon
+  - devices:
+    - config:
+        deviceClass: ssd
+      name: sdb
+    name: managed-control-1
+    resources: {}
+    roles:
+    - mon
+    - mgr
+  - devices:
+    - config:
+        deviceClass: ssd
+      name: sdb
+    name: managed-control-2
+    resources: {}
+    roles:
+    - mgr
+    - mon
+  objectStorage:
+    rgw:
+      dataPool:
+        deviceClass: ssd
+        enableCrushUpdates: false
+        failureDomain: host
+        replicated:
+          size: 2
+      gateway:
+        allNodes: false
+        instances: 2
+        port: 80
+        securePort: 8443
+      metadataPool:
+        deviceClass: ssd
+        enableCrushUpdates: false
+        failureDomain: host
+        replicated:
+          size: 2
+      name: openstack-store
+      preservePoolsOnDelete: false
+  pools:
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: kubernetes
+    replicated:
+      size: 2
+    role: kubernetes
+    storageClassOpts:
+      default: true
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: volumes
+    replicated:
+      size: 2
+    role: volumes
+    storageClassOpts: {}
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: vms
+    replicated:
+      size: 2
+    role: vms
+    storageClassOpts: {}
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: backup
+    replicated:
+      size: 2
+    role: backup
+    storageClassOpts: {}
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: images
+    replicated:
+      size: 2
+    role: images
+    storageClassOpts: {}
+  - deviceClass: ssd
+    enableCrushUpdates: false
+    name: other
+    replicated:
+      size: 2
+    role: other
+    storageClassOpts: {}
+  rookConfig:
+    bluestore_slow_ops_warn_lifetime: "100"
+    bluestore_slow_ops_warn_threshold: "50"
+    mon_max_pg_per_osd: "600"
+    mon_target_pg_per_osd: "200"
+    osd_pool_default_size: "2"

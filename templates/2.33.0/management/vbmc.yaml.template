@@ -1,0 +1,108 @@
+---
+apiVersion: metal3.io/v1alpha1
+kind: VBMC
+metadata:
+  labels:
+    vbmc.metal3.io/active: "1"
+  name: vbmc-vsphere-config
+  namespace: kaas
+spec:
+  default:
+    configDir: /vbmc
+  ipmi:
+    sessionTimeout: 20
+  log:
+    debug: true
+  domains:
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6230
+      domainName: {{ vm_name_prefix_tmpl }}mgmt-master-0
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6231
+      domainName: {{ vm_name_prefix_tmpl }}mgmt-master-1
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6232
+      domainName: {{ vm_name_prefix_tmpl }}mgmt-master-2
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6240
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-0
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6241
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-1
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6242
+      domainName: {{ vm_name_prefix_tmpl }}managed-control-2
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6250
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-0
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6251
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-1
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+    - username: admin
+      password: password
+      address: 127.0.0.1
+      port: 6252
+      domainName: {{ vm_name_prefix_tmpl }}managed-worker-2
+      vsphereAddress: {{ VSPHERE_SERVER }}
+      vsphereUsername: {{ VSPHERE_USERNAME }}
+      vspherePassword: {{ VSPHERE_PASSWORD }}
+      active: True
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: config
+    app.kubernetes.io/name: vbmc
+    app.kubernetes.io/part-of: kaas-bm
+  name: vbmc-vsphere-config
+  namespace: kaas
+data: {}

@@ -54,7 +54,7 @@ spec:
   - name: keycloak
     spec:
       interfaces:
-      - k8s-lcm
+      - mcc-lcm
       ipAddressPools:
       - iam-keycloak
   {%- endif %}
