@@ -41,6 +41,10 @@ function set_vars {
     _print_header "${FUNCNAME[0]}"
 
     : "${MCC_VERSION:=}"
+    if [ -z "${MCC_VERSION}" ] && [ -f "${mcc_version_file}" ]; then
+        # shellcheck source=/dev/null
+        source "${mcc_version_file}"
+    fi
 
     # Vsphere variables
     collect_vsphere_vars
@@ -1068,6 +1072,9 @@ EOF
     if [ -z "${MCC_VERSION}" ]; then
         export MCC_VERSION
         MCC_VERSION="$(${ssh_cmd} cat mcc_version)"
+        # LCM network layout depends on MCC_VERSION (Keycloak IP since 2.32),
+        # so recalculate it now when version is finally known
+        _prepare_lcm_net_vars
     fi
 
     # Keep state: MCC_VERSION
